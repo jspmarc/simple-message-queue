@@ -17,7 +17,7 @@ Metadata (when pull):
 
 ```
 code: EMPTY_QUEUE, SUCCESS, NULL_DATA
-type: (u_)i8, (u_)i16, (u_)i32, (u_)i64, f32, f64, str
+type: i8, i16, i32, i64, u8, u16, u32, u64 , f32, f64, str
 count: unsigned long
 ```
 
@@ -34,19 +34,19 @@ With the metadata, the response will be 5 megabytes with some additional bytes i
 
 Code and type to bits mapping
 
-| bits | code and type        |
-|------|----------------------|
-| 0000 | SUCCESS or u_i8      |
-| 0001 | NULL_DATA or u_i16   |
-| 0010 | EMPTY_QUEUE or u_i32 |
-| 0011 | u_i64                |
-| 0100 | i8                   |
-| 0101 | i16                  |
-| 0110 | i32                  |
-| 0111 | i64                  |
-| 1000 | f32                  |
-| 1001 | f64                  |
-| 1010 | str                  |
+| bits | code and type      |
+|------|--------------------|
+| 0000 | SUCCESS or u8      |
+| 0001 | NULL_DATA or u16   |
+| 0010 | EMPTY_QUEUE or u32 |
+| 0011 | u64                |
+| 0100 | i8                 |
+| 0101 | i16                |
+| 0110 | i32                |
+| 0111 | i64                |
+| 1000 | f32                |
+| 1001 | f64                |
+| 1010 | str                |
 
 ## Push
 

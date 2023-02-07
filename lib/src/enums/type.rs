@@ -1,15 +1,14 @@
-#[allow(non_camel_case_types)]
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Type {
-    u8 = 0,
-    u16 = 1,
-    u32 = 2,
-    u64 = 3,
-    i8 = 4,
-    i16 = 5,
-    i32 = 6,
-    i64 = 7,
-    f32 = 8,
-    f64 = 9,
-    str = 10,
+    U8(u8),
+    U16(u16),
+    U32(u32),
+    U64(u64),
+    I8(i8),
+    I16(i16),
+    I32(i32),
+    I64(i64),
+    F32(f32),
+    F64(f64),
+    Str(String),
 }

@@ -19,8 +19,8 @@ pub(crate) struct Metadata {
 }
 
 impl Message {
-    pub fn get_type(&self) -> Type {
-        self.metadata.r#type
+    pub fn get_type(&self) -> &Type {
+        &self.metadata.r#type
     }
 
     pub fn get_code(&self) -> Code {

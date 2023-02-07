@@ -15,7 +15,7 @@ mod tests {
     fn message_serialize_success() {
         let msg = Message {
             metadata: Metadata {
-                r#type: Type::u16,
+                r#type: Type::U16(0),
                 code: Code::SUCCESS,
                 size: 2,
             },
@@ -37,7 +37,7 @@ mod tests {
 
         let expected = Message {
             metadata: Metadata {
-                r#type: Type::u16,
+                r#type: Type::U16(0),
                 code: Code::SUCCESS,
                 size: 2,
             },

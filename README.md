@@ -17,7 +17,7 @@ Metadata (when pull):
 
 ```
 code: EMPTY_QUEUE, SUCCESS, NULL_DATA
-type: i8, i16, i32, i64, u8, u16, u32, u64 , f32, f64, str
+type: I8, I16, I32, I64, U8, U16, U32, U64 , F32, F64, Str
 count: unsigned long
 ```
 
@@ -36,17 +36,17 @@ Code and type to bits mapping
 
 | bits | code and type      |
 |------|--------------------|
-| 0000 | SUCCESS or u8      |
-| 0001 | NULL_DATA or u16   |
-| 0010 | EMPTY_QUEUE or u32 |
-| 0011 | u64                |
-| 0100 | i8                 |
-| 0101 | i16                |
-| 0110 | i32                |
-| 0111 | i64                |
-| 1000 | f32                |
-| 1001 | f64                |
-| 1010 | str                |
+| 0000 | SUCCESS or U8      |
+| 0001 | NULL_DATA or U16   |
+| 0010 | EMPTY_QUEUE or U32 |
+| 0011 | U64                |
+| 0100 | I8                 |
+| 0101 | I16                |
+| 0110 | I32                |
+| 0111 | I64                |
+| 1000 | F32                |
+| 1001 | F64                |
+| 1010 | Str                |
 
 ## Push
 

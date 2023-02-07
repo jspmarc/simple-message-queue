@@ -1,6 +1,3 @@
-use std::any::Any;
-use bytes::Bytes;
-use num::{Float, Integer};
 use crate::enums::r#type::Type;
 use crate::enums::code::Code;
 use crate::structs::message::{Message, Metadata};
@@ -11,27 +8,27 @@ impl Eq for Metadata {}
 
 pub(in super::super) fn map_bits_to_type(bits: u8) -> Type {
     if bits == 0b0000 {
-        Type::u8
+        Type::U8(0)
     } else if bits == 0b0001 {
-        Type::u16
+        Type::U16(0)
     } else if bits == 0b0010 {
-        Type::u32
+        Type::U32(0)
     } else if bits == 0b0011 {
-        Type::u64
+        Type::U64(0)
     } else if bits == 0b0100 {
-        Type::i8
+        Type::I8(0)
     } else if bits == 0b0101 {
-        Type::i16
+        Type::I16(0)
     } else if bits == 0b0110 {
-        Type::i32
+        Type::I32(0)
     } else if bits == 0b0111 {
-        Type::i64
+        Type::I64(0)
     } else if bits == 0b1000 {
-        Type::f32
+        Type::F32(0.0)
     } else if bits == 0b1001 {
-        Type::f64
+        Type::F64(0.0)
     } else if bits == 0b1010 {
-        Type::str
+        Type::Str("".to_string())
     } else {
         unimplemented!()
     }
@@ -39,17 +36,17 @@ pub(in super::super) fn map_bits_to_type(bits: u8) -> Type {
 
 pub(in super::super) fn map_type_to_bits(ty: &Type) -> u8 {
     (match ty {
-        Type::u8 => 0b0000,
-        Type::u16 => 0b0001,
-        Type::u32 => 0b0010,
-        Type::u64 => 0b0011,
-        Type::i8 => 0b0100,
-        Type::i16 => 0b0101,
-        Type::i32 => 0b0110,
-        Type::i64 => 0b0111,
-        Type::f32 => 0b1000,
-        Type::f64 => 0b1001,
-        Type::str => 0b1010,
+        Type::U8(_) => 0b0000,
+        Type::U16(_) => 0b0001,
+        Type::U32(_) => 0b0010,
+        Type::U64(_) => 0b0011,
+        Type::I8(_) => 0b0100,
+        Type::I16(_) => 0b0101,
+        Type::I32(_) => 0b0110,
+        Type::I64(_) => 0b0111,
+        Type::F32(_) => 0b1000,
+        Type::F64(_) => 0b1001,
+        Type::Str(_) => 0b1010,
     }) & 0x0F
 }
 

@@ -1,4 +1,3 @@
-use std::any::Any;
 use std::rc::Rc;
 use bytes::Bytes;
 use crate::enums::r#type::Type;
@@ -33,6 +32,28 @@ impl Message {
 
     pub fn get_data(&self) -> Rc<Vec<u8>> {
         Rc::clone(&self.data)
+    }
+
+    pub fn get_parsed_data(&self) -> Option<Vec<Type>> {
+        let metadata = &self.metadata;
+        if metadata.size == 0 || metadata.code == Code::NULL_DATA {
+            return None;
+        }
+
+        let data = &*self.data;
+
+        match metadata.r#type {
+            Type::Str(_) => Some(parse_string(data)),
+            // Type::u8 => Some(parse_int(data, false, 8)),
+            // Type::u16 => Some(parse_int(data, false, 16)),
+            // Type::u32 => Some(parse_int(data, false, 32)),
+            // Type::u64 => Some(parse_int(data, false, 64)),
+            // Type::i8 => Some(parse_int(data, true, 8)),
+            // Type::i16 => Some(parse_int(data, true, 16)),
+            // Type::i32 => Some(parse_int(data, true, 32)),
+            // Type::i64 => Some(parse_int(data, true, 64)),
+            _ => Some(vec![Type::U8(0)]),
+        }
     }
 
     pub fn serialize(&self) -> Bytes {

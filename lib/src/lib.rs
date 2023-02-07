@@ -46,4 +46,40 @@ mod tests {
 
         assert_eq!(Message::deserialize(&msg), expected);
     }
+
+    #[test]
+    fn message_get_parsed_data_list_str_success() {
+        let expected = vec![
+            String::from("Hello, World!"),
+            String::from("Hi, World!"),
+        ];
+        let data = [
+            Bytes::from(expected[0].clone()),
+            Bytes::from("\0"),
+            Bytes::from(expected[1].clone()),
+            Bytes::from("\0"),
+        ].concat();
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::Str(String::new()),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.get_parsed_data().unwrap();
+        let result = parsed.iter()
+            .map(|datum| {
+                if let Type::Str(s) = datum {
+                    s.clone()
+                } else {
+                    unimplemented!()
+                }
+            })
+            .collect::<Vec<String>>();
+
+        assert_eq!(expected.type_id(), result.type_id());
+        assert_eq!(expected, result);
+    }
 }

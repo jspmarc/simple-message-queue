@@ -23,7 +23,8 @@ count: unsigned long
 
 3 kinds metadata are used to describe the data. `code` describes the kind of response and `type`
 describes the data type. `count` describes how many data is in it. If `count > 1` then the data is
-treated as an array.
+treated as an array. For strings, each element will be seperated with a null-terminator character
+(\0) and a null-terminator character is added at the end of the data bytes.
 
 The metadata is a 5 bytes data to explain the sent data. The first byte consists of the `code` and
 `type` metadata. `code` takes first 4 bits and `type` takes the 2nd 4 bits. `count` is 4 bytes

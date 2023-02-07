@@ -69,3 +69,23 @@ pub(in super::super) fn map_code_to_bits(co: &Code) -> u8 {
         Code::EMPTY_QUEUE => 0b0010 << 4,
     }) & 0xF0
 }
+
+pub(in super::super) fn parse_string(data: &[u8]) -> Vec<Type> {
+    let mut left_ptr: usize = 0;
+    let mut right_ptr: usize;
+    let mut ret_val: Vec<Type> = vec![];
+
+    for (i, datum) in data.iter().enumerate() {
+        if *datum == 0 {
+            right_ptr = i - 1;
+
+            let data = data[left_ptr..right_ptr + 1].to_vec();
+            let data = String::from_utf8(data.clone()).unwrap();
+            ret_val.push(Type::Str(data.to_owned()));
+
+            left_ptr = i + 1;
+        }
+    }
+
+    ret_val
+}

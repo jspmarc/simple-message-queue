@@ -79,8 +79,8 @@ pub(in super::super) fn parse_string(data: &[u8]) -> Vec<Type> {
         if *datum == 0 {
             right_ptr = i - 1;
 
-            let data = data[left_ptr..right_ptr + 1].to_vec();
-            let data = String::from_utf8(data.clone()).unwrap();
+            let data = &data[left_ptr..right_ptr + 1];
+            let data = String::from_utf8_lossy(data).to_string();
             ret_val.push(Type::Str(data.to_owned()));
 
             left_ptr = i + 1;

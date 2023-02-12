@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use std::str::FromStr;
 use bytes::Bytes;
 use crate::enums::r#type::Type;
 use crate::enums::code::Code;
@@ -34,6 +35,24 @@ macro_rules! parse_precheck {
         if $metadata.size == 0 {
             return Some(vec![]);
         }
+    };
+}
+
+macro_rules! generate_constructor_from_number {
+    ($($ty:ty, $name:ident),+) => {
+        $(pub fn $name(data: &[$ty], r#type: Type) -> Self {
+            let mut msg_data = vec![];
+            data.iter().for_each(|x| msg_data.extend_from_slice(&x.to_be_bytes()));
+
+            Message {
+                metadata: Metadata {
+                    r#type,
+                    code: Code::SUCCESS,
+                    size: data.len(),
+                },
+                data: Rc::new(msg_data),
+            }
+        })+
     };
 }
 
@@ -99,6 +118,61 @@ impl Message {
     }
 }
 
+impl FromStr for Message {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let data = [
+            Bytes::from(s.to_string()),
+            Bytes::from("\0".to_string())
+        ].concat();
+
+        Ok(Message {
+            metadata: Metadata {
+                r#type: Type::Str("".to_string()),
+                code: Code::SUCCESS,
+                size: 1,
+            },
+            data: Rc::new(data)
+        })
+    }
+}
+
+// constructors
+impl Message {
+    pub fn from_str_arr(data: &[String]) -> Self {
+        let mut msg_data = vec![];
+
+        for datum in data {
+            msg_data.push(Bytes::from(datum.to_owned()));
+            msg_data.push(Bytes::from("\0".to_string()));
+        }
+
+        Message {
+            metadata: Metadata {
+                r#type: Type::Str("".to_string()),
+                code: Code::SUCCESS,
+                size: data.len(),
+            },
+            data: Rc::new(msg_data.concat()),
+        }
+    }
+
+    generate_constructor_from_number!(
+        u8, from_u8_arr,
+        u16, from_u16_arr,
+        u32, from_u32_arr,
+        u64, from_u64_arr,
+        i8, from_i8_arr,
+        i16, from_i16_arr,
+        i32, from_i32_arr,
+        i64, from_i64_arr,
+        f32, from_f32_arr,
+        f64, from_f64_arr
+    );
+}
+
+// parsers
 impl Message {
     pub fn parse_data_to_str(&self) -> Vec<String> {
         if let Type::Str(_) = self.metadata.r#type {

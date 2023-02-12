@@ -89,3 +89,58 @@ pub(in super::super) fn parse_string(data: &[u8]) -> Vec<Type> {
 
     ret_val
 }
+
+macro_rules! bytes_to_num {
+    ($arr:expr, $Type:expr, $ty:ty, 1) => {
+        $Type(<$ty>::from_be_bytes([$arr[0]]))
+    };
+
+    ($arr:expr, $Type:expr, $ty:ty, 2) => {
+        $Type(<$ty>::from_be_bytes([$arr[0], $arr[1]]))
+    };
+
+    ($arr:expr, $Type:expr, $ty:ty, 4) => {
+        $Type(<$ty>::from_be_bytes([$arr[0], $arr[1], $arr[2], $arr[3]]))
+    };
+
+    ($arr:expr, $Type:expr, $ty:ty, 8) => {
+        $Type(<$ty>::from_be_bytes([$arr[0], $arr[1], $arr[2], $arr[3],
+                                  $arr[4], $arr[5], $arr[6], $arr[7]]))
+    };
+}
+
+pub(in super::super) fn parse_num(data: &Vec<u8>, ty: Type) -> Vec<Type> {
+    let size: usize = match ty {
+        Type::U8(_) | Type::I8(_) => 1,
+        Type::U16(_) | Type::I16(_) => 2,
+        Type::U32(_) | Type::I32(_) | Type::F32(_) => 4,
+        Type::U64(_) | Type::I64(_) | Type::F64(_) => 8,
+        _ => unimplemented!()
+    };
+
+    let mut ret_val: Vec<Type> = vec![];
+
+    let mut i = 0;
+    while i < data.len() {
+        let current_bytes = &data[i..i + size];
+        let current_data = match ty {
+            Type::U8(_) => bytes_to_num!(current_bytes, Type::U8, u8, 1),
+            Type::U16(_) => bytes_to_num!(current_bytes, Type::U16, u16, 2),
+            Type::U32(_) => bytes_to_num!(current_bytes, Type::U32, u32, 4),
+            Type::U64(_) => bytes_to_num!(current_bytes, Type::U64, u64, 8),
+            Type::I8(_) => bytes_to_num!(current_bytes, Type::I8, i8, 1),
+            Type::I16(_) => bytes_to_num!(current_bytes, Type::I16, i16, 2),
+            Type::I32(_) => bytes_to_num!(current_bytes, Type::I32, i32, 4),
+            Type::I64(_) => bytes_to_num!(current_bytes, Type::I64, i64, 8),
+            Type::F32(_) => bytes_to_num!(current_bytes, Type::F32, f32, 4),
+            Type::F64(_) => bytes_to_num!(current_bytes, Type::F64, f64, 8),
+            _ => unimplemented!()
+        };
+
+        ret_val.push(current_data);
+
+        i += size;
+    }
+
+    ret_val
+}

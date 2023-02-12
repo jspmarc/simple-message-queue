@@ -17,6 +17,26 @@ pub(crate) struct Metadata {
     pub(crate) size: usize,
 }
 
+macro_rules! downcast_type {
+    ($data:ident, $ty:ty) => {
+        $data.iter()
+            .map(|x| *(x.get_value().downcast::<$ty>().unwrap()))
+            .collect::<Vec<$ty>>()
+    };
+}
+
+macro_rules! parse_precheck {
+    ($metadata:expr) => {
+        if $metadata.code == Code::NULL_DATA {
+            return None;
+        }
+
+        if $metadata.size == 0 {
+            return Some(vec![]);
+        }
+    };
+}
+
 impl Message {
     pub fn get_type(&self) -> &Type {
         &self.metadata.r#type
@@ -32,28 +52,6 @@ impl Message {
 
     pub fn get_data(&self) -> Rc<Vec<u8>> {
         Rc::clone(&self.data)
-    }
-
-    pub fn get_parsed_data(&self) -> Option<Vec<Type>> {
-        let metadata = &self.metadata;
-        if metadata.size == 0 || metadata.code == Code::NULL_DATA {
-            return None;
-        }
-
-        let data = &*self.data;
-
-        match metadata.r#type {
-            Type::Str(_) => Some(parse_string(data)),
-            // Type::u8 => Some(parse_int(data, false, 8)),
-            // Type::u16 => Some(parse_int(data, false, 16)),
-            // Type::u32 => Some(parse_int(data, false, 32)),
-            // Type::u64 => Some(parse_int(data, false, 64)),
-            // Type::i8 => Some(parse_int(data, true, 8)),
-            // Type::i16 => Some(parse_int(data, true, 16)),
-            // Type::i32 => Some(parse_int(data, true, 32)),
-            // Type::i64 => Some(parse_int(data, true, 64)),
-            _ => Some(vec![Type::U8(0)]),
-        }
     }
 
     pub fn serialize(&self) -> Bytes {
@@ -98,5 +96,106 @@ impl Message {
             },
             data,
         }
+    }
+}
+
+impl Message {
+    pub fn parse_data_to_str(&self) -> Vec<String> {
+        if let Type::Str(_) = self.metadata.r#type {
+            let data = parse_string(&*self.data);
+            return downcast_type!(data, String);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_u8(&self) -> Vec<u8> {
+        if let Type::U8(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::U8(0));
+            return downcast_type!(data, u8);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_u16(&self) -> Vec<u16> {
+        if let Type::U16(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::U16(0));
+            return downcast_type!(data, u16);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_u32(&self) -> Vec<u32> {
+        if let Type::U32(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::U32(0));
+            return downcast_type!(data, u32);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_u64(&self) -> Vec<u64> {
+        if let Type::U64(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::U64(0));
+            return downcast_type!(data, u64);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_i8(&self) -> Vec<i8> {
+        if let Type::I8(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::I8(0));
+            return downcast_type!(data, i8);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_i16(&self) -> Vec<i16> {
+        if let Type::I16(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::I16(0));
+            return downcast_type!(data, i16);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_i32(&self) -> Vec<i32> {
+        if let Type::I32(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::I32(0));
+            return downcast_type!(data, i32);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_i64(&self) -> Vec<i64> {
+        if let Type::I64(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::I64(0));
+            return downcast_type!(data, i64);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_f32(&self) -> Vec<f32> {
+        if let Type::F32(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::F32(0.0));
+            return downcast_type!(data, f32);
+        }
+
+        unimplemented!()
+    }
+
+    pub fn parse_data_to_f64(&self) -> Vec<f64> {
+        if let Type::F64(_) = self.metadata.r#type {
+            let data = parse_num(&*self.data, Type::F64(0.0));
+            return downcast_type!(data, f64);
+        }
+
+        unimplemented!()
     }
 }

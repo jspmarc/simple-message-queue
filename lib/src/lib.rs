@@ -4,7 +4,6 @@ pub mod traits;
 
 #[cfg(test)]
 mod tests {
-    use std::any::{Any};
     use std::rc::Rc;
     use bytes::Bytes;
     use crate::enums::code::Code;
@@ -48,7 +47,7 @@ mod tests {
     }
 
     #[test]
-    fn message_get_parsed_data_list_str_success() {
+    fn message_parse_data_to_str_success() {
         let expected = vec![
             String::from("Hello, World!"),
             String::from("Hi, World!"),
@@ -68,18 +67,199 @@ mod tests {
             data: Rc::new(data),
         };
 
-        let parsed = msg.get_parsed_data().unwrap();
-        let result = parsed.iter()
-            .map(|datum| {
-                if let Type::Str(s) = datum {
-                    s.clone()
-                } else {
-                    unimplemented!()
-                }
-            })
-            .collect::<Vec<String>>();
+        let parsed = msg.parse_data_to_str();
 
-        assert_eq!(expected.type_id(), result.type_id());
-        assert_eq!(expected, result);
+        assert_eq!(expected.type_id(), parsed.type_id());
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_u8_success() {
+        let expected = vec![u8::MIN, u8::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::U8(0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_u8();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_i8_success() {
+        let expected = vec![i8::MIN, i8::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::I8(0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_i8();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_u16_success() {
+        let expected  = vec![u16::MIN, u16::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::U16(0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_u16();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_i16_success() {
+        let expected  = vec![i16::MIN, i16::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::I16(0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_i16();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_u32_success() {
+        let expected  = vec![u32::MIN, u32::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::U32(0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_u32();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_i32_success() {
+        let expected  = vec![i32::MIN, i32::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::I32(0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_i32();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_u64_success() {
+        let expected  = vec![u64::MIN, u64::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::U64(0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_u64();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_i64_success() {
+        let expected  = vec![i64::MIN, i64::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::I64(0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_i64();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_f32_success() {
+        let expected  = vec![f32::MIN, f32::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::F32(0.0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_f32();
+
+        assert_eq!(expected, parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_f64_success() {
+        let expected  = vec![f64::MIN, f64::MAX];
+        let mut data = vec![];
+        expected.iter().for_each(|x| data.extend_from_slice(&x.to_be_bytes()));
+        let msg = Message {
+            metadata: Metadata {
+                r#type: Type::F64(0.0),
+                code: Code::SUCCESS,
+                size: expected.len(),
+            },
+            data: Rc::new(data),
+        };
+
+        let parsed = msg.parse_data_to_f64();
+
+        assert_eq!(expected, parsed);
     }
 }

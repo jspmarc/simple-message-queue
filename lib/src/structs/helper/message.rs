@@ -144,3 +144,61 @@ pub(in super::super) fn parse_num(data: &Vec<u8>, ty: Type) -> Vec<Type> {
 
     ret_val
 }
+
+macro_rules! downcast_type {
+    ($data:ident, $ty:ty) => {
+        $data.iter()
+            .map(|x| *(x.get_value().downcast::<$ty>().unwrap()))
+            .collect::<Vec<$ty>>()
+    };
+}
+
+macro_rules! parse_precheck {
+    ($metadata:expr) => {
+        if $metadata.code == Code::NULL_DATA {
+            return None;
+        }
+
+        if $metadata.size == 0 {
+            return Some(vec![]);
+        }
+    };
+}
+
+macro_rules! generate_constructor_from_number {
+    ($($ty:ty, $name:ident),+) => {
+        $(pub fn $name(data: &[$ty], r#type: Type) -> Self {
+            let mut msg_data = vec![];
+            data.iter().for_each(|x| msg_data.extend_from_slice(&x.to_be_bytes()));
+
+            Message {
+                metadata: Metadata {
+                    r#type,
+                    code: Code::SUCCESS,
+                    size: data.len(),
+                },
+                data: Rc::new(msg_data),
+            }
+        })+
+    };
+}
+
+macro_rules! generate_parser_to_number {
+    ($($ty:ty, $name:ident, $type_pat:pat, $type_expr:expr),+) => {
+        $(pub fn $name(&self) -> Vec<$ty> {
+            if let $type_pat = self.metadata.r#type {
+                let data = parse_num(&*self.data, $type_expr);
+                return downcast_type!(data, $ty);
+            }
+
+            unimplemented!()
+        })+
+    };
+}
+
+pub(in super::super) use {
+    downcast_type,
+    parse_precheck,
+    generate_constructor_from_number,
+    generate_parser_to_number
+};

@@ -7,53 +7,15 @@ use crate::structs::helper::message::*;
 
 #[derive(Debug, PartialEq)]
 pub struct Message {
-    pub(crate) metadata: Metadata,
-    pub(crate) data: Rc<Vec<u8>>,
+    metadata: Metadata,
+    data: Rc<Vec<u8>>,
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct Metadata {
-    pub(crate) r#type: Type,
-    pub(crate) code: Code,
-    pub(crate) size: usize,
-}
-
-macro_rules! downcast_type {
-    ($data:ident, $ty:ty) => {
-        $data.iter()
-            .map(|x| *(x.get_value().downcast::<$ty>().unwrap()))
-            .collect::<Vec<$ty>>()
-    };
-}
-
-macro_rules! parse_precheck {
-    ($metadata:expr) => {
-        if $metadata.code == Code::NULL_DATA {
-            return None;
-        }
-
-        if $metadata.size == 0 {
-            return Some(vec![]);
-        }
-    };
-}
-
-macro_rules! generate_constructor_from_number {
-    ($($ty:ty, $name:ident),+) => {
-        $(pub fn $name(data: &[$ty], r#type: Type) -> Self {
-            let mut msg_data = vec![];
-            data.iter().for_each(|x| msg_data.extend_from_slice(&x.to_be_bytes()));
-
-            Message {
-                metadata: Metadata {
-                    r#type,
-                    code: Code::SUCCESS,
-                    size: data.len(),
-                },
-                data: Rc::new(msg_data),
-            }
-        })+
-    };
+pub(in super) struct Metadata {
+    r#type: Type,
+    code: Code,
+    size: usize,
 }
 
 impl Message {
@@ -183,93 +145,16 @@ impl Message {
         unimplemented!()
     }
 
-    pub fn parse_data_to_u8(&self) -> Vec<u8> {
-        if let Type::U8(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::U8(0));
-            return downcast_type!(data, u8);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_u16(&self) -> Vec<u16> {
-        if let Type::U16(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::U16(0));
-            return downcast_type!(data, u16);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_u32(&self) -> Vec<u32> {
-        if let Type::U32(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::U32(0));
-            return downcast_type!(data, u32);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_u64(&self) -> Vec<u64> {
-        if let Type::U64(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::U64(0));
-            return downcast_type!(data, u64);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_i8(&self) -> Vec<i8> {
-        if let Type::I8(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::I8(0));
-            return downcast_type!(data, i8);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_i16(&self) -> Vec<i16> {
-        if let Type::I16(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::I16(0));
-            return downcast_type!(data, i16);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_i32(&self) -> Vec<i32> {
-        if let Type::I32(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::I32(0));
-            return downcast_type!(data, i32);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_i64(&self) -> Vec<i64> {
-        if let Type::I64(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::I64(0));
-            return downcast_type!(data, i64);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_f32(&self) -> Vec<f32> {
-        if let Type::F32(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::F32(0.0));
-            return downcast_type!(data, f32);
-        }
-
-        unimplemented!()
-    }
-
-    pub fn parse_data_to_f64(&self) -> Vec<f64> {
-        if let Type::F64(_) = self.metadata.r#type {
-            let data = parse_num(&*self.data, Type::F64(0.0));
-            return downcast_type!(data, f64);
-        }
-
-        unimplemented!()
-    }
+    generate_parser_to_number!(
+        u8, parse_data_to_u8, Type::U8(_), Type::U8(0),
+        u16, parse_data_to_u16, Type::U16(_), Type::U16(0),
+        u32, parse_data_to_u32, Type::U32(_), Type::U32(0),
+        u64, parse_data_to_u64, Type::U64(_), Type::U64(0),
+        i8, parse_data_to_i8, Type::I8(_), Type::I8(0),
+        i16, parse_data_to_i16, Type::I16(_), Type::I16(0),
+        i32, parse_data_to_i32, Type::I32(_), Type::I32(0),
+        i64, parse_data_to_i64, Type::I64(_), Type::I64(0),
+        f32, parse_data_to_f32, Type::F32(_), Type::F32(0.0),
+        f64, parse_data_to_f64, Type::F64(_), Type::F64(0.0)
+    );
 }

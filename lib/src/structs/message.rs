@@ -120,18 +120,45 @@ impl Message {
         }
     }
 
-    generate_constructor_from_number!(
-        u8, from_u8_arr,
-        u16, from_u16_arr,
-        u32, from_u32_arr,
-        u64, from_u64_arr,
-        i8, from_i8_arr,
-        i16, from_i16_arr,
-        i32, from_i32_arr,
-        i64, from_i64_arr,
-        f32, from_f32_arr,
-        f64, from_f64_arr
-    );
+    pub fn from_u8_arr(data: &[u8]) -> Self {
+        generate_constructor_from_number!(u8, data, Type::U8(0));
+    }
+
+    pub fn from_u16_arr(data: &[u16]) -> Self {
+        generate_constructor_from_number!(u16, data, Type::U16(0));
+    }
+
+    pub fn from_u32_arr(data: &[u32]) -> Self {
+        generate_constructor_from_number!(u32, data, Type::U32(0));
+    }
+
+    pub fn from_u64_arr(data: &[u64]) -> Self {
+        generate_constructor_from_number!(u64, data, Type::U64(0));
+    }
+
+    pub fn from_i8_arr(data: &[i8]) -> Self {
+        generate_constructor_from_number!(i8, data, Type::I8(0));
+    }
+
+    pub fn from_i16_arr(data: &[i16]) -> Self {
+        generate_constructor_from_number!(i16, data, Type::I16(0));
+    }
+
+    pub fn from_i32_arr(data: &[i32]) -> Self {
+        generate_constructor_from_number!(i32, data, Type::I32(0));
+    }
+
+    pub fn from_i64_arr(data: &[i64]) -> Self {
+        generate_constructor_from_number!(i64, data, Type::I64(0));
+    }
+
+    pub fn from_f32_arr(data: &[f32]) -> Self {
+        generate_constructor_from_number!(f32, data, Type::F32(0.0));
+    }
+
+    pub fn from_f64_arr(data: &[f64]) -> Self {
+        generate_constructor_from_number!(f64, data, Type::F64(0.0));
+    }
 }
 
 // parsers

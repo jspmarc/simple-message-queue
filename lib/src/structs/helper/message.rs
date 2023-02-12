@@ -166,20 +166,18 @@ macro_rules! parse_precheck {
 }
 
 macro_rules! generate_constructor_from_number {
-    ($($ty:ty, $name:ident),+) => {
-        $(pub fn $name(data: &[$ty], r#type: Type) -> Self {
-            let mut msg_data = vec![];
-            data.iter().for_each(|x| msg_data.extend_from_slice(&x.to_be_bytes()));
+    ($ty:ty, $data:ident, $r#type:expr) => {
+        let mut msg_data = vec![];
+        $data.iter().for_each(|x| msg_data.extend_from_slice(&x.to_be_bytes()));
 
-            Message {
-                metadata: Metadata {
-                    r#type,
-                    code: Code::SUCCESS,
-                    size: data.len(),
-                },
-                data: Rc::new(msg_data),
-            }
-        })+
+        return Message {
+            metadata: Metadata {
+                r#type: $r#type,
+                code: Code::SUCCESS,
+                size: $data.len(),
+            },
+            data: Rc::new(msg_data),
+        };
     };
 }
 

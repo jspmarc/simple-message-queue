@@ -141,12 +141,12 @@ pub(in super::super) fn validate_header(header: &[u8]) -> Result<(), MessageErro
 
     let first_nibble = first_byte >> 4;
     if first_nibble != 0b0000 && first_nibble != 0b0010 {
-        return Err(MessageError::InvalidBits);
+        return Err(MessageError::InvalidHeaderBits);
     }
 
     let second_nibble = first_byte & 0x0F;
     if second_nibble > 0b1010 {
-        return Err(MessageError::InvalidBits);
+        return Err(MessageError::InvalidHeaderBits);
     }
 
     Ok(())
@@ -156,7 +156,11 @@ pub(in super::super) fn validate_body(body: &[u8], len: usize, ty: &Type) -> Res
     let size = ty.get_size();
 
     if size == 0 {
-        return Ok(())
+        return if body[body.len() - 1] == 0 {
+            Ok(())
+        } else {
+            Err(MessageError::InvalidData)
+        }
     }
 
     let expected_size = len * size;

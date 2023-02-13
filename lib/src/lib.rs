@@ -37,17 +37,27 @@ mod tests {
                                    0, 1, 0, 127]);
 
         let res = Message::deserialize(&msg);
-        assert_eq!(res.unwrap_err(), MessageError::InvalidBits);
+        assert_eq!(res.unwrap_err(), MessageError::InvalidHeaderBits);
     }
 
     #[test]
-    fn message_deserialize_invalid_body() {
+    fn message_deserialize_invalid_data_length() {
         let msg = Bytes::from(vec![0b0000_0001,
                                    0, 0, 0, 3,
                                    0, 1, 0, 127]);
 
         let res = Message::deserialize(&msg);
         assert_eq!(res.unwrap_err(), MessageError::InvalidDataLength);
+    }
+
+    #[test]
+    fn message_deserialize_invalid_data() {
+        let msg = Bytes::from(vec![0b0000_1010,
+                                   0, 0, 0, 1,
+                                   1]);
+
+        let res = Message::deserialize(&msg);
+        assert_eq!(res.unwrap_err(), MessageError::InvalidData);
     }
 
     #[test]

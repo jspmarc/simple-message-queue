@@ -1,13 +1,20 @@
-use std::any::Any;
-use std::rc::Rc;
+use crate::structs::message::Message;
 
 trait Server {
     /// a method to start the server
-    fn start(&self);
+    fn start(&self, port: Option<usize>);
 
-    /// pushes message to the server's queue
-    fn push(&self, message: Rc<dyn Any>);
+    /// a method to stop the server
+    fn stop(&self);
 
-    /// pulls a message from the server's queue
-    fn pull(&self) -> Rc<dyn Any>;
+    /// a method to dequeue a value from the queue and then broadcast the
+    /// message to all connected clients
+    fn broadcast(&self);
+
+    /// a method to enqueue a message to the server (usually from outside of the
+    /// client)
+    fn enqueue(&self, message: Message);
+
+    /// a method to dequeue a message to the server
+    fn dequeue(&self) -> Message;
 }

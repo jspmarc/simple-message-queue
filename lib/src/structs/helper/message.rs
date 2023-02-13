@@ -175,18 +175,6 @@ macro_rules! downcast_type {
     };
 }
 
-macro_rules! parse_precheck {
-    ($metadata:expr) => {
-        if $metadata.code == Code::NULL_DATA {
-            return None;
-        }
-
-        if $metadata.size == 0 {
-            return Some(vec![]);
-        }
-    };
-}
-
 macro_rules! generate_constructor_from_number {
     ($($ty:ty, $name:ident, $r#type:expr),+) => {
         $(pub fn $name(data: &[$ty]) -> Self {
@@ -220,7 +208,6 @@ macro_rules! generate_parser_to_number {
 
 pub(in super::super) use {
     downcast_type,
-    parse_precheck,
     generate_constructor_from_number,
     generate_parser_to_number,
 };

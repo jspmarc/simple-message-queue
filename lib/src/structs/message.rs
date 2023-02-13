@@ -44,10 +44,10 @@ impl Message {
             let first_byte = code + ty;
 
             let size = metadata.size;
-            let size_first_byte: u8 = (size & 0xFF00_0000) as u8;
-            let size_second_byte: u8 = (size & 0x00FF_0000) as u8;
-            let size_third_byte: u8 = (size & 0x0000_FF00) as u8;
-            let size_fourth_byte: u8 = (size & 0x0000_00FF) as u8;
+            let size_first_byte = (size & 0xFF00_0000) as u8;
+            let size_second_byte = (size & 0x00FF_0000) as u8;
+            let size_third_byte = (size & 0x0000_FF00) as u8;
+            let size_fourth_byte = (size & 0x0000_00FF) as u8;
 
             Bytes::from(vec![first_byte,
                              size_first_byte,

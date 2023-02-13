@@ -6,6 +6,7 @@ pub mod traits;
 mod tests {
     use std::str::FromStr;
     use bytes::Bytes;
+    use crate::enums::errors::MessageError;
     use crate::structs::message::{Message};
 
     #[test]
@@ -27,6 +28,26 @@ mod tests {
         let expected = Message::from_u16_arr(&[1, 127]);
 
         assert_eq!(Message::deserialize(&msg).unwrap(), expected);
+    }
+
+    #[test]
+    fn message_deserialize_invalid_header() {
+        let msg = Bytes::from(vec![0b1000_0001,
+                                   0, 0, 0, 2,
+                                   0, 1, 0, 127]);
+
+        let res = Message::deserialize(&msg);
+        assert_eq!(res.unwrap_err(), MessageError::InvalidBits);
+    }
+
+    #[test]
+    fn message_deserialize_invalid_body() {
+        let msg = Bytes::from(vec![0b0000_0001,
+                                   0, 0, 0, 3,
+                                   0, 1, 0, 127]);
+
+        let res = Message::deserialize(&msg);
+        assert_eq!(res.unwrap_err(), MessageError::InvalidDataLength);
     }
 
     #[test]

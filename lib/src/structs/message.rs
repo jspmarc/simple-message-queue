@@ -72,6 +72,7 @@ impl Message {
             (size_bytes[3] as usize);
 
         // body
+        validate_body(&message[5..], size, &r#type)?;
         let data = message.slice(5..).to_vec();
         let data = Rc::new(data);
 

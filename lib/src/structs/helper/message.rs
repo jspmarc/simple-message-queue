@@ -108,14 +108,7 @@ macro_rules! bytes_to_num {
 }
 
 pub(in super::super) fn parse_num(data: &Vec<u8>, ty: Type) -> Vec<Type> {
-    let size: usize = match ty {
-        Type::U8(_) | Type::I8(_) => 1,
-        Type::U16(_) | Type::I16(_) => 2,
-        Type::U32(_) | Type::I32(_) | Type::F32(_) => 4,
-        Type::U64(_) | Type::I64(_) | Type::F64(_) => 8,
-        _ => unimplemented!()
-    };
-
+    let size: usize = ty.get_size();
     let mut ret_val: Vec<Type> = vec![];
 
     let mut i = 0;
@@ -154,6 +147,21 @@ pub(in super::super) fn validate_header(header: &[u8]) -> Result<(), MessageErro
     let second_nibble = first_byte & 0x0F;
     if second_nibble > 0b1010 {
         return Err(MessageError::InvalidBits);
+    }
+
+    Ok(())
+}
+
+pub(in super::super) fn validate_body(body: &[u8], len: usize, ty: &Type) -> Result<(), MessageError> {
+    let size = ty.get_size();
+
+    if size == 0 {
+        return Ok(())
+    }
+
+    let expected_size = len * size;
+    if expected_size != body.len() {
+        return Err(MessageError::InvalidDataLength)
     }
 
     Ok(())

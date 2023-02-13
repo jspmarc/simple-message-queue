@@ -31,4 +31,16 @@ impl Type {
             Type::Str(str) => Box::new(str.to_owned()),
         }
     }
+
+    #[inline]
+    /// for strings and other type with variable size, we send size 0
+    pub fn get_size(&self) -> usize {
+        match self {
+            Type::U8(_) | Type::I8(_) => 1,
+            Type::U16(_) | Type::I16(_) => 2,
+            Type::U32(_) | Type::I32(_) | Type::F32(_) => 4,
+            Type::U64(_) | Type::I64(_) | Type::F64(_) => 8,
+            Type::Str(_) => 0,
+        }
+    }
 }

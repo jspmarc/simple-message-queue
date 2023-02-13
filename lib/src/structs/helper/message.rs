@@ -147,7 +147,7 @@ pub(in super::super) fn validate_header(header: &[u8]) -> Result<(), MessageErro
     let first_byte = header[0];
 
     let first_nibble = first_byte >> 4;
-    if first_nibble != 0b0000 || first_nibble != 0b0010 {
+    if first_nibble != 0b0000 && first_nibble != 0b0010 {
         return Err(MessageError::InvalidBits);
     }
 

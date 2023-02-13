@@ -26,7 +26,7 @@ mod tests {
 
         let expected = Message::from_u16_arr(&[1, 127]);
 
-        assert_eq!(Message::deserialize(&msg), expected);
+        assert_eq!(Message::deserialize(&msg).unwrap(), expected);
     }
 
     #[test]

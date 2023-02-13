@@ -7,6 +7,7 @@ impl Eq for Message {}
 
 impl Eq for Metadata {}
 
+#[inline]
 /// assume the given nibble are in-spec
 pub(in super::super) fn map_nibble_to_type(nibble: u8) -> Type {
     if nibble == 0b0000 {
@@ -35,6 +36,7 @@ pub(in super::super) fn map_nibble_to_type(nibble: u8) -> Type {
     }
 }
 
+#[inline]
 pub(in super::super) fn map_type_to_nibble(ty: &Type) -> u8 {
     (match ty {
         Type::U8(_) => 0b0000,
@@ -51,6 +53,7 @@ pub(in super::super) fn map_type_to_nibble(ty: &Type) -> u8 {
     }) & 0x0F
 }
 
+#[inline]
 /// assume the given nibble are in-spec
 pub(in super::super) fn map_nibble_to_code(nibble: u8) -> Code {
     if nibble == 0b0000 << 4 {
@@ -61,6 +64,7 @@ pub(in super::super) fn map_nibble_to_code(nibble: u8) -> Code {
     }
 }
 
+#[inline]
 pub(in super::super) fn map_code_to_nibble(co: &Code) -> u8 {
     (match co {
         Code::SUCCESS => 0b0000 << 4,

@@ -3,6 +3,7 @@ use std::str::FromStr;
 use bytes::Bytes;
 use crate::enums::r#type::Type;
 use crate::enums::code::Code;
+use crate::enums::errors::MessageError;
 use crate::structs::helper::message::*;
 
 #[derive(Debug, PartialEq)]
@@ -38,8 +39,8 @@ impl Message {
     pub fn serialize(&self) -> Bytes {
         let metadata = {
             let metadata = &self.metadata;
-            let code = map_code_to_bits(&metadata.code);
-            let ty = map_type_to_bits(&metadata.r#type);
+            let code = map_code_to_nibble(&metadata.code);
+            let ty = map_type_to_nibble(&metadata.r#type);
             let first_byte = code + ty;
 
             let size = metadata.size;
@@ -58,25 +59,32 @@ impl Message {
         Bytes::from([metadata, Bytes::from((*self.data).clone())].concat())
     }
 
-    pub fn deserialize(message: &Bytes) -> Message {
+    pub fn deserialize(message: &Bytes) -> Result<Message, MessageError> {
+        // header
+        if let Err(e) = validate_header(&message[..5]) {
+            return Err(e);
+        }
         let first_byte = message[0];
-        let code = map_bits_to_code(first_byte & 0xF0);
-        let r#type = map_bits_to_type(first_byte & 0x0F);
+        let code = map_nibble_to_code(first_byte & 0xF0);
+        let r#type = map_nibble_to_type(first_byte & 0x0F);
         let size_bytes = message.slice(1..5).to_vec();
         let size: usize = ((size_bytes[0] as usize) << 24) +
             ((size_bytes[1] as usize) << 16) +
             ((size_bytes[2] as usize) << 8) +
             (size_bytes[3] as usize);
-        let data = Rc::new(message.slice(5..).to_vec());
 
-        Message {
+        // body
+        let data = message.slice(5..).to_vec();
+        let data = Rc::new(data);
+
+        Ok(Message {
             metadata: Metadata {
                 r#type,
                 code,
                 size,
             },
             data,
-        }
+        })
     }
 }
 

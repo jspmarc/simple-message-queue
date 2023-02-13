@@ -1,40 +1,41 @@
 use crate::enums::r#type::Type;
 use crate::enums::code::Code;
+use crate::enums::errors::MessageError;
 use crate::structs::message::{Message, Metadata};
 
 impl Eq for Message {}
 
 impl Eq for Metadata {}
 
-pub(in super::super) fn map_bits_to_type(bits: u8) -> Type {
-    if bits == 0b0000 {
+/// assume the given nibble are in-spec
+pub(in super::super) fn map_nibble_to_type(nibble: u8) -> Type {
+    if nibble == 0b0000 {
         Type::U8(0)
-    } else if bits == 0b0001 {
+    } else if nibble == 0b0001 {
         Type::U16(0)
-    } else if bits == 0b0010 {
+    } else if nibble == 0b0010 {
         Type::U32(0)
-    } else if bits == 0b0011 {
+    } else if nibble == 0b0011 {
         Type::U64(0)
-    } else if bits == 0b0100 {
+    } else if nibble == 0b0100 {
         Type::I8(0)
-    } else if bits == 0b0101 {
+    } else if nibble == 0b0101 {
         Type::I16(0)
-    } else if bits == 0b0110 {
+    } else if nibble == 0b0110 {
         Type::I32(0)
-    } else if bits == 0b0111 {
+    } else if nibble == 0b0111 {
         Type::I64(0)
-    } else if bits == 0b1000 {
+    } else if nibble == 0b1000 {
         Type::F32(0.0)
-    } else if bits == 0b1001 {
+    } else if nibble == 0b1001 {
         Type::F64(0.0)
-    } else if bits == 0b1010 {
-        Type::Str("".to_string())
     } else {
-        unimplemented!()
+        // nibble == 0b1010
+        Type::Str("".to_string())
     }
 }
 
-pub(in super::super) fn map_type_to_bits(ty: &Type) -> u8 {
+pub(in super::super) fn map_type_to_nibble(ty: &Type) -> u8 {
     (match ty {
         Type::U8(_) => 0b0000,
         Type::U16(_) => 0b0001,
@@ -50,17 +51,17 @@ pub(in super::super) fn map_type_to_bits(ty: &Type) -> u8 {
     }) & 0x0F
 }
 
-pub(in super::super) fn map_bits_to_code(bits: u8) -> Code {
-    if bits == 0b0000 << 4 {
+/// assume the given nibble are in-spec
+pub(in super::super) fn map_nibble_to_code(nibble: u8) -> Code {
+    if nibble == 0b0000 << 4 {
         Code::SUCCESS
-    } else if bits == 0b0010 {
-        Code::EMPTY_QUEUE
     } else {
-        unimplemented!()
+        // nibble == 0b0010
+        Code::EMPTY_QUEUE
     }
 }
 
-pub(in super::super) fn map_code_to_bits(co: &Code) -> u8 {
+pub(in super::super) fn map_code_to_nibble(co: &Code) -> u8 {
     (match co {
         Code::SUCCESS => 0b0000 << 4,
         Code::EMPTY_QUEUE => 0b0010 << 4,
@@ -142,6 +143,22 @@ pub(in super::super) fn parse_num(data: &Vec<u8>, ty: Type) -> Vec<Type> {
     ret_val
 }
 
+pub(in super::super) fn validate_header(header: &[u8]) -> Result<(), MessageError> {
+    let first_byte = header[0];
+
+    let first_nibble = first_byte >> 4;
+    if first_nibble != 0b0000 || first_nibble != 0b0010 {
+        return Err(MessageError::InvalidBits);
+    }
+
+    let second_nibble = first_byte & 0x0F;
+    if second_nibble > 0b1010 {
+        return Err(MessageError::InvalidBits);
+    }
+
+    Ok(())
+}
+
 macro_rules! downcast_type {
     ($data:ident, $ty:ty) => {
         $data.iter()
@@ -195,5 +212,5 @@ pub(in super::super) use {
     downcast_type,
     parse_precheck,
     generate_constructor_from_number,
-    generate_parser_to_number
+    generate_parser_to_number,
 };

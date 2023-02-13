@@ -61,9 +61,7 @@ impl Message {
 
     pub fn deserialize(message: &Bytes) -> Result<Message, MessageError> {
         // header
-        if let Err(e) = validate_header(&message[..5]) {
-            return Err(e);
-        }
+        validate_header(&message[..5])?;
         let first_byte = message[0];
         let code = map_nibble_to_code(first_byte & 0xF0);
         let r#type = map_nibble_to_type(first_byte & 0x0F);
@@ -128,45 +126,18 @@ impl Message {
         }
     }
 
-    pub fn from_u8_arr(data: &[u8]) -> Self {
-        generate_constructor_from_number!(u8, data, Type::U8(0));
-    }
-
-    pub fn from_u16_arr(data: &[u16]) -> Self {
-        generate_constructor_from_number!(u16, data, Type::U16(0));
-    }
-
-    pub fn from_u32_arr(data: &[u32]) -> Self {
-        generate_constructor_from_number!(u32, data, Type::U32(0));
-    }
-
-    pub fn from_u64_arr(data: &[u64]) -> Self {
-        generate_constructor_from_number!(u64, data, Type::U64(0));
-    }
-
-    pub fn from_i8_arr(data: &[i8]) -> Self {
-        generate_constructor_from_number!(i8, data, Type::I8(0));
-    }
-
-    pub fn from_i16_arr(data: &[i16]) -> Self {
-        generate_constructor_from_number!(i16, data, Type::I16(0));
-    }
-
-    pub fn from_i32_arr(data: &[i32]) -> Self {
-        generate_constructor_from_number!(i32, data, Type::I32(0));
-    }
-
-    pub fn from_i64_arr(data: &[i64]) -> Self {
-        generate_constructor_from_number!(i64, data, Type::I64(0));
-    }
-
-    pub fn from_f32_arr(data: &[f32]) -> Self {
-        generate_constructor_from_number!(f32, data, Type::F32(0.0));
-    }
-
-    pub fn from_f64_arr(data: &[f64]) -> Self {
-        generate_constructor_from_number!(f64, data, Type::F64(0.0));
-    }
+    generate_constructor_from_number!(
+        u8, from_u8_arr, Type::U8(0),
+        u16, from_u16_arr, Type::U16(0),
+        u32, from_u32_arr, Type::U32(0),
+        u64, from_u64_arr, Type::U64(0),
+        i8, from_i8_arr, Type::I8(0),
+        i16, from_i16_arr, Type::I16(0),
+        i32, from_i32_arr, Type::I32(0),
+        i64, from_i64_arr, Type::I64(0),
+        f32, from_f32_arr, Type::F32(0.0),
+        f64, from_f64_arr, Type::F64(0.0)
+    );
 }
 
 // parsers

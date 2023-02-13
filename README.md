@@ -6,8 +6,7 @@
 - the client is free to push (enqueue) or pull (dequeue) messages to the queue after it is
   connected
 - when the client pulls (dequeue), they will get `EMPTY_QUEUE` response if the queue is empty and
-  `SUCCESS` response if the queue is not empty. Clients could also get `NULL_DATA` response if
-  the data is empty.
+  `SUCCESS` response if the queue is not empty.
 - client can push (enqueue) anytime they want, the messages are kept in the server until the
   server is stopped
 
@@ -16,7 +15,7 @@
 Metadata (when pull):
 
 ```
-code: EMPTY_QUEUE, SUCCESS, NULL_DATA
+code: EMPTY_QUEUE, SUCCESS
 type: I8, I16, I32, I64, U8, U16, U32, U64 , F32, F64, Str
 count: unsigned long
 ```
@@ -38,7 +37,7 @@ Code and type to bits mapping
 | bits | code and type      |
 |------|--------------------|
 | 0000 | SUCCESS or U8      |
-| 0001 | NULL_DATA or U16   |
+| 0001 | U16                |
 | 0010 | EMPTY_QUEUE or U32 |
 | 0011 | U64                |
 | 0100 | I8                 |

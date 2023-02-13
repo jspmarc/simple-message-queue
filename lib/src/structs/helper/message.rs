@@ -53,8 +53,6 @@ pub(in super::super) fn map_type_to_bits(ty: &Type) -> u8 {
 pub(in super::super) fn map_bits_to_code(bits: u8) -> Code {
     if bits == 0b0000 << 4 {
         Code::SUCCESS
-    } else if bits == 0b0001 << 4 {
-        Code::NULL_DATA
     } else if bits == 0b0010 {
         Code::EMPTY_QUEUE
     } else {
@@ -65,7 +63,6 @@ pub(in super::super) fn map_bits_to_code(bits: u8) -> Code {
 pub(in super::super) fn map_code_to_bits(co: &Code) -> u8 {
     (match co {
         Code::SUCCESS => 0b0000 << 4,
-        Code::NULL_DATA => 0b0001 << 4,
         Code::EMPTY_QUEUE => 0b0010 << 4,
     }) & 0xF0
 }

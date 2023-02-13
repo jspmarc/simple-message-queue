@@ -68,7 +68,7 @@ mod tests {
         ];
 
         let msg = Message::from_str_arr(&expected);
-        let parsed = msg.parse_data_to_str();
+        let parsed = msg.parse_data_to_str().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -77,9 +77,27 @@ mod tests {
     fn message_parse_data_to_str_success_from_str_single() {
         let s = "Halo";
         let msg = Message::from_str(s).unwrap();
-        let parsed = msg.parse_data_to_str();
+        let parsed = msg.parse_data_to_str().unwrap();
 
         assert_eq!(vec![s], parsed);
+    }
+
+    #[test]
+    fn message_parse_data_to_str_err() {
+        let expected = vec![u8::MIN, u8::MAX];
+        let msg = Message::from_u8_arr(&expected);
+        let parsed = msg.parse_data_to_str().unwrap_err();
+
+        assert_eq!(parsed, MessageError::InvalidType);
+    }
+
+    #[test]
+    fn message_parse_data_to_num_err() {
+        let expected = vec![u8::MIN, u8::MAX];
+        let msg = Message::from_u8_arr(&expected);
+        let parsed = msg.parse_data_to_f32().unwrap_err();
+
+        assert_eq!(parsed, MessageError::InvalidType);
     }
 
     #[test]
@@ -87,7 +105,7 @@ mod tests {
         let expected = vec![u8::MIN, u8::MAX];
         let msg = Message::from_u8_arr(&expected);
 
-        let parsed = msg.parse_data_to_u8();
+        let parsed = msg.parse_data_to_u8().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -97,7 +115,7 @@ mod tests {
         let expected = vec![i8::MIN, i8::MAX];
         let msg = Message::from_i8_arr(&expected);
 
-        let parsed = msg.parse_data_to_i8();
+        let parsed = msg.parse_data_to_i8().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -107,7 +125,7 @@ mod tests {
         let expected  = vec![u16::MIN, u16::MAX];
         let msg = Message::from_u16_arr(&expected);
 
-        let parsed = msg.parse_data_to_u16();
+        let parsed = msg.parse_data_to_u16().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -117,7 +135,7 @@ mod tests {
         let expected  = vec![i16::MIN, i16::MAX];
         let msg = Message::from_i16_arr(&expected);
 
-        let parsed = msg.parse_data_to_i16();
+        let parsed = msg.parse_data_to_i16().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -127,7 +145,7 @@ mod tests {
         let expected  = vec![u32::MIN, u32::MAX];
         let msg = Message::from_u32_arr(&expected);
 
-        let parsed = msg.parse_data_to_u32();
+        let parsed = msg.parse_data_to_u32().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -137,7 +155,7 @@ mod tests {
         let expected  = vec![i32::MIN, i32::MAX];
         let msg = Message::from_i32_arr(&expected);
 
-        let parsed = msg.parse_data_to_i32();
+        let parsed = msg.parse_data_to_i32().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -147,7 +165,7 @@ mod tests {
         let expected  = vec![u64::MIN, u64::MAX];
         let msg = Message::from_u64_arr(&expected);
 
-        let parsed = msg.parse_data_to_u64();
+        let parsed = msg.parse_data_to_u64().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -157,7 +175,7 @@ mod tests {
         let expected  = vec![i64::MIN, i64::MAX];
         let msg = Message::from_i64_arr(&expected);
 
-        let parsed = msg.parse_data_to_i64();
+        let parsed = msg.parse_data_to_i64().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -167,7 +185,7 @@ mod tests {
         let expected  = vec![f32::MIN, f32::MAX];
         let msg = Message::from_f32_arr(&expected);
 
-        let parsed = msg.parse_data_to_f32();
+        let parsed = msg.parse_data_to_f32().unwrap();
 
         assert_eq!(expected, parsed);
     }
@@ -177,7 +195,7 @@ mod tests {
         let expected  = vec![f64::MIN, f64::MAX];
         let msg = Message::from_f64_arr(&expected);
 
-        let parsed = msg.parse_data_to_f64();
+        let parsed = msg.parse_data_to_f64().unwrap();
 
         assert_eq!(expected, parsed);
     }

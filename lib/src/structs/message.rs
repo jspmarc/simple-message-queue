@@ -143,13 +143,13 @@ impl Message {
 
 // parsers
 impl Message {
-    pub fn parse_data_to_str(&self) -> Vec<String> {
+    pub fn parse_data_to_str(&self) -> Result<Vec<String>, MessageError> {
         if let Type::Str(_) = self.metadata.r#type {
             let data = parse_string(&*self.data);
             return downcast_type!(data, String);
         }
 
-        unimplemented!()
+        Err(MessageError::InvalidType)
     }
 
     generate_parser_to_number!(

@@ -177,9 +177,9 @@ pub(in super::super) fn validate_body(body: &[u8], len: usize, ty: &Type) -> Res
 
 macro_rules! downcast_type {
     ($data:ident, $ty:ty) => {
-        $data.iter()
+        Ok($data.iter()
             .map(|x| *(x.get_value().downcast::<$ty>().unwrap()))
-            .collect::<Vec<$ty>>()
+            .collect::<Vec<$ty>>())
     };
 }
 
@@ -203,13 +203,13 @@ macro_rules! generate_constructor_from_number {
 
 macro_rules! generate_parser_to_number {
     ($($ty:ty, $name:ident, $type_pat:pat, $type_expr:expr),+) => {
-        $(pub fn $name(&self) -> Vec<$ty> {
+        $(pub fn $name(&self) -> Result<Vec<$ty>, MessageError> {
             if let $type_pat = self.metadata.r#type {
                 let data = parse_num(&*self.data, $type_expr);
                 return downcast_type!(data, $ty);
             }
 
-            unimplemented!()
+            Err(MessageError::InvalidType)
         })+
     };
 }

@@ -85,6 +85,11 @@ impl Message {
             data,
         })
     }
+
+    pub fn validate(&self) -> Result<(), MessageError> {
+        validate_body(&self.data.clone(), self.metadata.size, &self.metadata.r#type)?;
+        Ok(())
+    }
 }
 
 impl FromStr for Message {
@@ -139,6 +144,17 @@ impl Message {
         f32, from_f32_arr, Type::F32(0.0),
         f64, from_f64_arr, Type::F64(0.0)
     );
+
+    pub fn empty_message() -> Self {
+        Message {
+            metadata: Metadata {
+                r#type: Type::U8(0),
+                code: Code::EMPTY_QUEUE,
+                size: 0,
+            },
+            data: Rc::new(Bytes::from("\0").to_vec()),
+        }
+    }
 }
 
 // parsers

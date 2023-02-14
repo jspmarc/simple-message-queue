@@ -10,7 +10,41 @@
 - client can push (enqueue) anytime they want, the messages are kept in the server until the
   server is stopped
 
-## Pull Response
+## Request and Response
+
+Each request and response have a 1 byte header and a body. The body can have a variable size. The
+header denotes the type of action done to the server.
+
+There are 2 types of action that can be done when doing request to the server:
+
+- push
+- pull
+
+### Push
+
+#### Request
+
+- Header is `0`.
+- The body is the message (see [Message Format](#message-format)).
+
+#### Response
+
+- Header is 1 byte. If message is successfully pushed, header is `0`, else header is `1`.
+- Body is empty.
+
+### Pull
+
+#### Request
+
+- Header is `1`.
+- The body is empty.
+
+#### Response
+
+- The header can be empty.
+- The body is the message saved in the message queue (see [Message Format](#message-format)).
+
+## Message Format
 
 Metadata (when pull):
 
@@ -47,13 +81,3 @@ Code and type to bits mapping
 | 1000 | F32                |
 | 1001 | F64                |
 | 1010 | Str                |
-
-## Push
-
-### Request
-
-The form for push request is similar to the response for pull.
-
-### Response
-
-The response would only be 1 byte consisting of `code` metadata.

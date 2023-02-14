@@ -21,9 +21,9 @@ mod tests {
 
     #[test]
     fn message_deserialize_success() {
-        let msg = Bytes::from(vec![0b0000_0001,
-                                   0, 0, 0, 2,
-                                   0, 1, 0, 127]);
+        let msg = [0b0000_0001,
+            0, 0, 0, 2,
+            0, 1, 0, 127];
 
         let expected = Message::from_u16_arr(&[1, 127]);
 
@@ -32,9 +32,9 @@ mod tests {
 
     #[test]
     fn message_deserialize_invalid_header() {
-        let msg = Bytes::from(vec![0b1000_0001,
-                                   0, 0, 0, 2,
-                                   0, 1, 0, 127]);
+        let msg = [0b1000_0001,
+            0, 0, 0, 2,
+            0, 1, 0, 127];
 
         let res = Message::deserialize(&msg);
         assert_eq!(res.unwrap_err(), MessageError::InvalidHeaderBits);
@@ -42,9 +42,9 @@ mod tests {
 
     #[test]
     fn message_deserialize_invalid_data_length() {
-        let msg = Bytes::from(vec![0b0000_0001,
-                                   0, 0, 0, 3,
-                                   0, 1, 0, 127]);
+        let msg = [0b0000_0001,
+            0, 0, 0, 3,
+            0, 1, 0, 127];
 
         let res = Message::deserialize(&msg);
         assert_eq!(res.unwrap_err(), MessageError::InvalidDataLength);
@@ -52,9 +52,9 @@ mod tests {
 
     #[test]
     fn message_deserialize_invalid_data() {
-        let msg = Bytes::from(vec![0b0000_1010,
-                                   0, 0, 0, 1,
-                                   1]);
+        let msg = [0b0000_1010,
+            0, 0, 0, 1,
+            1];
 
         let res = Message::deserialize(&msg);
         assert_eq!(res.unwrap_err(), MessageError::InvalidData);
@@ -122,7 +122,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_u16_success() {
-        let expected  = vec![u16::MIN, u16::MAX];
+        let expected = vec![u16::MIN, u16::MAX];
         let msg = Message::from_u16_arr(&expected);
 
         let parsed = msg.parse_data_to_u16().unwrap();
@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_i16_success() {
-        let expected  = vec![i16::MIN, i16::MAX];
+        let expected = vec![i16::MIN, i16::MAX];
         let msg = Message::from_i16_arr(&expected);
 
         let parsed = msg.parse_data_to_i16().unwrap();
@@ -142,7 +142,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_u32_success() {
-        let expected  = vec![u32::MIN, u32::MAX];
+        let expected = vec![u32::MIN, u32::MAX];
         let msg = Message::from_u32_arr(&expected);
 
         let parsed = msg.parse_data_to_u32().unwrap();
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_i32_success() {
-        let expected  = vec![i32::MIN, i32::MAX];
+        let expected = vec![i32::MIN, i32::MAX];
         let msg = Message::from_i32_arr(&expected);
 
         let parsed = msg.parse_data_to_i32().unwrap();
@@ -162,7 +162,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_u64_success() {
-        let expected  = vec![u64::MIN, u64::MAX];
+        let expected = vec![u64::MIN, u64::MAX];
         let msg = Message::from_u64_arr(&expected);
 
         let parsed = msg.parse_data_to_u64().unwrap();
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_i64_success() {
-        let expected  = vec![i64::MIN, i64::MAX];
+        let expected = vec![i64::MIN, i64::MAX];
         let msg = Message::from_i64_arr(&expected);
 
         let parsed = msg.parse_data_to_i64().unwrap();
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_f32_success() {
-        let expected  = vec![f32::MIN, f32::MAX];
+        let expected = vec![f32::MIN, f32::MAX];
         let msg = Message::from_f32_arr(&expected);
 
         let parsed = msg.parse_data_to_f32().unwrap();
@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_f64_success() {
-        let expected  = vec![f64::MIN, f64::MAX];
+        let expected = vec![f64::MIN, f64::MAX];
         let msg = Message::from_f64_arr(&expected);
 
         let parsed = msg.parse_data_to_f64().unwrap();

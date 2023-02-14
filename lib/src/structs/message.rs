@@ -59,13 +59,13 @@ impl Message {
         Bytes::from([metadata, Bytes::from((*self.data).clone())].concat())
     }
 
-    pub fn deserialize(message: &Bytes) -> Result<Message, MessageError> {
+    pub fn deserialize(message: &[u8]) -> Result<Message, MessageError> {
         // header
         validate_header(&message[..5])?;
         let first_byte = message[0];
         let code = map_nibble_to_code(first_byte & 0xF0);
         let r#type = map_nibble_to_type(first_byte & 0x0F);
-        let size_bytes = message.slice(1..5).to_vec();
+        let size_bytes = message[1..5].to_vec();
         let size: usize = ((size_bytes[0] as usize) << 24) +
             ((size_bytes[1] as usize) << 16) +
             ((size_bytes[2] as usize) << 8) +
@@ -73,7 +73,7 @@ impl Message {
 
         // body
         validate_body(&message[5..], size, &r#type)?;
-        let data = message.slice(5..).to_vec();
+        let data = message[5..].to_vec();
         let data = Rc::new(data);
 
         Ok(Message {

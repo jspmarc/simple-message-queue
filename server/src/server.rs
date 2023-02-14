@@ -1,5 +1,8 @@
 use std::collections::VecDeque;
-use smq_lib::enums::errors::MessageError;
+use std::io::{BufReader, Write};
+use std::net::{TcpListener, TcpStream};
+use bytes::Bytes;
+use smq_lib::enums::errors::{MessageError, ServerError};
 use smq_lib::structs::message::Message;
 use smq_lib::traits::server::Server;
 
@@ -15,12 +18,64 @@ impl ServerImpl {
     }
 }
 
+const SUCCESS_HEADER: [u8; 1] = [0];
+const FAILED_HEADER: [u8; 1] = [1];
+
+impl ServerImpl {
+    fn handle_incoming(&mut self, mut stream: TcpStream) {
+        let buf_reader = BufReader::new(&mut stream);
+        let buffer = buf_reader.buffer();
+        let first_byte = buffer[0];
+        let body = &buffer[1..];
+
+        if first_byte == 0 {
+            // push
+            let msg = match Message::deserialize(body) {
+                Ok(m) => m,
+                Err(_) => return stream.write_all(&FAILED_HEADER).unwrap(),
+            };
+
+            return match self.enqueue(msg) {
+                Ok(_) => (),
+                Err(_) => stream.write_all(&FAILED_HEADER).unwrap(),
+            };
+        } else {
+            // pull
+            let msg = self.dequeue();
+            let response = vec![
+                Bytes::from(SUCCESS_HEADER.to_vec()),
+                msg.serialize()
+            ].concat();
+            stream.write_all(&response).unwrap();
+        }
+    }
+}
+
 impl Server for ServerImpl {
-    fn start(&self, port: Option<usize>) {
-        todo!()
+    fn start(&mut self, port: Option<usize>) -> Result<(), ServerError> {
+        let addr = format!("0.0.0.0:{}", port.unwrap_or(8080));
+
+        let listener = match TcpListener::bind(addr) {
+            Ok(listener) => listener,
+            Err(e) => return Err(ServerError::UnableToStartListener(e.to_string())),
+        };
+
+        for stream in listener.incoming() {
+            let stream = match stream {
+                Ok(s) => s,
+                Err(e) => {
+                    println!("Can't decode stream, error: {}", e);
+                    continue;
+                }
+            };
+
+            self.handle_incoming(stream);
+        }
+
+        Ok(())
     }
 
-    fn stop(&self) {
+    fn stop(&self) -> Result<(), ServerError> {
         todo!()
     }
 

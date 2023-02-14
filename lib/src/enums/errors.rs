@@ -5,3 +5,7 @@ pub enum MessageError {
     InvalidData,
     InvalidHeaderBits,
 }
+
+pub enum ServerError {
+    UnableToStartListener(String),
+}

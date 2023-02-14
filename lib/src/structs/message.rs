@@ -152,7 +152,7 @@ impl Message {
                 code: Code::EMPTY_QUEUE,
                 size: 0,
             },
-            data: Rc::new(Bytes::from("\0").to_vec()),
+            data: Rc::new(vec![]),
         }
     }
 }

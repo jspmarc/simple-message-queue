@@ -1,16 +1,16 @@
-use crate::enums::r#type::Type;
+use crate::enums::errors::ClientError;
 use crate::structs::message::Message;
 
-trait Client {
+pub trait Client {
     /// a method to connect the client to the server
-    fn connect(&self, host: &str, port: u16);
+    fn connect(&mut self, host: &str, port: u16) -> Result<(), ClientError>;
 
     /// a method to disconnect the client from the server
     fn disconnect(&self);
 
     /// pushes message to the server's queue
-    fn push(&self, message: &Message) -> Type;
+    fn push(&mut self, message: &Message) -> Result<bool, ClientError>;
 
     /// pulls a message from the server's queue
-    fn pull(&self) -> Message;
+    fn pull(&mut self) -> Result<Message, ClientError>;
 }

@@ -10,3 +10,13 @@ pub enum MessageError {
 pub enum ServerError {
     UnableToStartListener(String),
 }
+
+#[derive(Debug)]
+pub enum ClientError {
+    UnableToStartStream(String),
+    StreamNotStarted,
+    CantWriteToStream(String),
+    CantReadFromStream(String),
+    ServerError,
+    MessageError(MessageError),
+}

@@ -6,6 +6,7 @@ pub enum MessageError {
     InvalidHeaderBits,
 }
 
+#[derive(Debug)]
 pub enum ServerError {
     UnableToStartListener(String),
 }

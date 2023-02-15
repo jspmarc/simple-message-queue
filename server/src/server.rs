@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::io::{BufReader, Write};
+use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use bytes::Bytes;
 use log::{error, info};
@@ -27,9 +27,9 @@ impl ServerImpl {
         let buf_reader = BufReader::new(&mut stream);
         let buffer = buf_reader.buffer();
         let first_byte = buffer[0];
-        let body = &buffer[1..];
 
         if first_byte == 0 {
+            let body = &buffer[1..];
             info!("Got a push message");
             // push
             let msg = match Message::deserialize(body) {

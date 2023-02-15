@@ -12,8 +12,9 @@
 
 ## Request and Response
 
-Each request and response have a 1 byte header and a body. The body can have a variable size. The
-header denotes the type of action done to the server.
+Each request and response have a 9 byte header and a body. The body can have a variable size. The
+first byte of the header denotes the type of action done to the server. The last 8 bytes denotes the
+body size.
 
 There are 2 types of action that can be done when doing request to the server:
 
@@ -24,24 +25,24 @@ There are 2 types of action that can be done when doing request to the server:
 
 #### Request
 
-- Header is `0`.
+- Header's first byte is `0`.
 - The body is the message (see [Message Format](#message-format)).
 
 #### Response
 
-- Header is 1 byte. If message is successfully pushed, header is `0`, else header is `1`.
+- Header's first byte is `0` if message is successfully pushed, else header is `1`.
 - Body is empty.
 
 ### Pull
 
 #### Request
 
-- Header is `1`.
+- Header's first byte is `1`.
 - The body is empty.
 
 #### Response
 
-- The header can be empty.
+- The header's first byte can be of any value.
 - The body is the message saved in the message queue (see [Message Format](#message-format)).
 
 ## Message Format

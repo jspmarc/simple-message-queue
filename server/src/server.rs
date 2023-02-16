@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use bytes::Bytes;
 use log::{error, info};
@@ -24,15 +24,21 @@ const FAILED_HEADER: [u8; 1] = [1];
 
 impl ServerImpl {
     fn handle_incoming(&mut self, mut stream: TcpStream) {
-        let buf_reader = BufReader::new(&mut stream);
-        let buffer = buf_reader.buffer();
-        let first_byte = buffer[0];
+        let mut buf_reader = BufReader::new(&mut stream);
+        let mut header: [u8; 9] = [0; 9];
+        // TODO: handle this expect
+        buf_reader.read_exact(&mut header).expect("Can't read headers");
+        let first_byte = header[0];
+        let size = u64::from_be_bytes([header[1], header[2], header[3], header[4],
+            header[5], header[6], header[7], header[8]]);
 
         if first_byte == 0 {
-            let body = &buffer[1..];
+            let mut body = vec![0_u8; size as usize];
+            // TODO: handle this expect
+            buf_reader.read_exact(&mut body).expect("Can't read body");
             info!("Got a push message");
             // push
-            let msg = match Message::deserialize(body) {
+            let msg = match Message::deserialize(&body) {
                 Ok(m) => m,
                 Err(_) => return stream.write_all(&FAILED_HEADER).unwrap(),
             };
@@ -44,10 +50,11 @@ impl ServerImpl {
         } else {
             info!("Got a pull message");
             // pull
-            let msg = self.dequeue();
+            let msg = self.dequeue().serialize();
             let response = vec![
                 Bytes::from(SUCCESS_HEADER.to_vec()),
-                msg.serialize()
+                Bytes::from(msg.len().to_be_bytes().to_vec()),
+                msg,
             ].concat();
             stream.write_all(&response).unwrap();
         }

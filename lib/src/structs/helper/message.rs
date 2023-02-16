@@ -164,12 +164,12 @@ pub(in super::super) fn validate_body(body: &[u8], len: usize, ty: &Type) -> Res
             Ok(())
         } else {
             Err(MessageError::InvalidData)
-        }
+        };
     }
 
     let expected_size = len * size;
-    if expected_size != body.len() {
-        return Err(MessageError::InvalidDataLength)
+    if expected_size > u64::max as usize || expected_size != body.len() {
+        return Err(MessageError::InvalidDataLength);
     }
 
     Ok(())

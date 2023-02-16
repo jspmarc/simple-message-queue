@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{BufReader, Read, Write};
 use std::net::TcpStream;
 use bytes::Bytes;
 use smq_lib::enums::errors::ClientError;
@@ -47,17 +47,20 @@ impl Client for ClientImpl {
     fn push(&mut self, message: &Message) -> Result<bool, ClientError> {
         let stream = self.get_stream()?;
 
+        let msg = message.serialize();
         let request = vec![
             Bytes::from(PUSH_HEADER.to_vec()),
-            message.serialize(),
+            Bytes::from(msg.len().to_be_bytes().to_vec()),
+            msg,
         ].concat();
         if let Err(e) = stream.write(&request) {
             return Err(ClientError::CantWriteToStream(e.to_string()));
         };
 
+        let mut buf_reader = BufReader::new(stream);
         let mut response_buf: [u8; 1] = [0];
-        if let Err(e) = stream.read(&mut response_buf) {
-            return Err(ClientError::CantReadFromStream(e.to_string()))
+        if let Err(e) = buf_reader.read_exact(&mut response_buf) {
+            return Err(ClientError::CantReadFromStream(e.to_string()));
         };
 
         Ok(response_buf[0] == 0)
@@ -71,11 +74,18 @@ impl Client for ClientImpl {
             return Err(ClientError::CantWriteToStream(e.to_string()));
         };
 
-        let mut response: Vec::<u8> = vec![];
-        if let Err(e) = stream.read_to_end(&mut response) {
-            return Err(ClientError::CantReadFromStream(e.to_string()))
-        };
+        let mut buf_reader = BufReader::new(stream);
+        let mut header: [u8; 9] = [0; 9];
+        if let Err(e) = buf_reader.read_exact(&mut header) {
+            return Err(ClientError::CantReadFromStream(e.to_string()));
+        }
+        let size = u64::from_be_bytes([header[1], header[2], header[3], header[4],
+            header[5], header[6], header[7], header[8]]);
 
+        let mut response = vec![0_u8; size as usize];
+        if let Err(e) = buf_reader.read_exact(&mut response) {
+            return Err(ClientError::CantReadFromStream(e.to_string()));
+        }
         if response[0] != 0 {
             return Err(ClientError::ServerError);
         }

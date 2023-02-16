@@ -6,6 +6,9 @@ use crate::client::ClientImpl;
 mod client;
 
 fn main() {
+    ::std::env::set_var("RUST_LOG", "INFO");
+    env_logger::init();
+
     let mut client = ClientImpl::new();
 
     client.connect("localhost", 8080).expect("Can't connect to server");
@@ -17,5 +20,5 @@ fn main() {
     }
 
     let result = client.pull().expect("Can't pull message");
-    println!("{:?}", result);
+    println!("{:#?}", result);
 }

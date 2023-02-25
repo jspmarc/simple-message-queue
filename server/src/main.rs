@@ -8,7 +8,7 @@ fn main() {
     env_logger::init();
 
     let mut server = ServerImpl::new();
-    server.start(None).expect("Server encountered an error");
+    server.bind(None).expect("Server encountered an error");
 
-    server.stop().expect("Server can't be stopped");
+    server.r#loop().expect("An error occurred when running server loop");
 }

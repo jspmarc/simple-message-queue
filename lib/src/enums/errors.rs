@@ -8,7 +8,8 @@ pub enum MessageError {
 
 #[derive(Debug)]
 pub enum ServerError {
-    UnableToStartListener(String),
+    UnableToStartServer(String),
+    ServerNotYetStarted,
 }
 
 #[derive(Debug)]

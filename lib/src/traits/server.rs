@@ -3,8 +3,11 @@ use crate::enums::errors::{MessageError, ServerError};
 use crate::structs::message::Message;
 
 pub trait Server {
+    /// binds the server to a port
+    fn bind(&mut self, port: Option<usize>) -> Result<(), ServerError>;
+
     /// a method to start the server
-    fn start(&mut self, port: Option<usize>) -> Result<(), ServerError>;
+    fn r#loop(&mut self) -> Result<(), ServerError>;
 
     /// a method to stop the server
     fn stop(&mut self) -> Result<(), ServerError>;

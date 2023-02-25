@@ -13,6 +13,7 @@ use smq_lib::traits::server::Server;
 pub(crate) struct ServerImpl {
     queue: Arc<Mutex<VecDeque<Message>>>,
     threads: Vec<JoinHandle<()>>,
+    listener: Option<TcpListener>,
 }
 
 impl ServerImpl {
@@ -20,6 +21,7 @@ impl ServerImpl {
         ServerImpl {
             queue: Arc::new(Mutex::new(VecDeque::new())),
             threads: vec![],
+            listener: None,
         }
     }
 }
@@ -71,16 +73,25 @@ impl ServerImpl {
 }
 
 impl Server for ServerImpl {
-    fn start(&mut self, port: Option<usize>) -> Result<(), ServerError> {
+    fn bind(&mut self, port: Option<usize>) -> Result<(), ServerError> {
         let addr = format!("0.0.0.0:{}", port.unwrap_or(8080));
 
         info!("Starting TCP listener");
-        let listener = match TcpListener::bind(addr) {
-            Ok(listener) => listener,
-            Err(e) => return Err(ServerError::UnableToStartListener(e.to_string())),
+        self.listener = match TcpListener::bind(addr) {
+            Ok(listener) => Some(listener),
+            Err(e) => return Err(ServerError::UnableToStartServer(e.to_string())),
         };
 
         info!("Listener is ready to listen to incoming messages");
+
+        Ok(())
+    }
+
+    fn r#loop(&mut self) -> Result<(), ServerError> {
+        let listener = match &self.listener {
+            Some(listener) => listener,
+            None => return Err(ServerError::ServerNotYetStarted),
+        };
 
         for stream in listener.incoming() {
             let stream = match stream {
@@ -98,7 +109,7 @@ impl Server for ServerImpl {
             self.threads.push(t);
         }
 
-        Ok(())
+        self.stop()
     }
 
     fn stop(&mut self) -> Result<(), ServerError> {

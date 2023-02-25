@@ -79,6 +79,11 @@ impl Client for ClientImpl {
         if let Err(e) = buf_reader.read_exact(&mut header) {
             return Err(ClientError::CantReadFromStream(e.to_string()));
         }
+
+        if header[0] != 0 {
+            return Err(ClientError::ServerError(String::from("Server can't send data")));
+        }
+
         let size = u64::from_be_bytes([header[1], header[2], header[3], header[4],
             header[5], header[6], header[7], header[8]]);
 
@@ -86,12 +91,8 @@ impl Client for ClientImpl {
         if let Err(e) = buf_reader.read_exact(&mut response) {
             return Err(ClientError::CantReadFromStream(e.to_string()));
         }
-        if response[0] != 0 {
-            return Err(ClientError::ServerError(String::from("Server can't send data")));
-        }
 
-        let response = &response[1..];
-        match Message::deserialize(response) {
+        match Message::deserialize(&response) {
             Ok(msg) => Ok(msg),
             Err(e) => Err(ClientError::MessageError(e)),
         }

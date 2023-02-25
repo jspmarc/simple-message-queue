@@ -40,34 +40,37 @@ impl ServerImpl {
             let size = u64::from_be_bytes([header[1], header[2], header[3], header[4],
                 header[5], header[6], header[7], header[8]]);
 
-            if first_byte == 0 {
-                let mut body = vec![0_u8; size as usize];
-                // TODO: handle this expect
-                stream.read_exact(&mut body).expect("Can't read body");
-                info!("Got a push message");
-                // push
-                let msg = match Message::deserialize(&body) {
-                    Ok(m) => m,
-                    Err(_) => return stream.write_all(&FAILED_HEADER).unwrap(),
-                };
+            let response = {
+                if first_byte == 0 {
+                    let mut body = vec![0_u8; size as usize];
+                    // TODO: handle this expect
+                    stream.read_exact(&mut body).expect("Can't read body");
+                    info!("Got a push message");
+                    // push
+                    let msg = match Message::deserialize(&body) {
+                        Ok(m) => m,
+                        Err(_) => return stream.write_all(&FAILED_HEADER).unwrap(),
+                    };
 
-                let queue = &mut queue.lock().unwrap();
-                match ServerImpl::enqueue(queue, msg) {
-                    Ok(_) => stream.write_all(&SUCCESS_HEADER).unwrap(),
-                    Err(_) => stream.write_all(&FAILED_HEADER).unwrap(),
+                    let queue = &mut queue.lock().unwrap();
+                    let response = match ServerImpl::enqueue(queue, msg) {
+                        Ok(_) => SUCCESS_HEADER,
+                        Err(_) => FAILED_HEADER,
+                    };
+                    [response.to_vec(), vec![0; 8]].concat()
+                } else {
+                    info!("Got a pull message");
+                    // pull
+                    let queue = &mut queue.lock().unwrap();
+                    let msg = ServerImpl::dequeue(queue).serialize();
+                    vec![
+                        Bytes::from(SUCCESS_HEADER.to_vec()),
+                        Bytes::from(msg.len().to_be_bytes().to_vec()),
+                        msg,
+                    ].concat()
                 }
-            } else {
-                info!("Got a pull message");
-                // pull
-                let queue = &mut queue.lock().unwrap();
-                let msg = ServerImpl::dequeue(queue).serialize();
-                let response = vec![
-                    Bytes::from(SUCCESS_HEADER.to_vec()),
-                    Bytes::from(msg.len().to_be_bytes().to_vec()),
-                    msg,
-                ].concat();
-                stream.write_all(&response).unwrap();
-            }
+            };
+            stream.write_all(&response).expect("Failed to send response");
         }
     }
 }

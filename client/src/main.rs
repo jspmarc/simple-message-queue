@@ -1,3 +1,5 @@
+use std::thread::sleep;
+use std::time::Duration;
 use smq_lib::structs::message::Message;
 use smq_lib::traits::client::Client;
 use crate::client::ClientImpl;
@@ -18,6 +20,10 @@ fn main() {
         panic!("Failed to push message, server can't receive");
     }
 
+    sleep(Duration::from_secs(1));
+
     let result = client.pull().expect("Can't pull message");
     println!("{:#?}", result);
+
+    client.disconnect().expect("Can't disconnect");
 }

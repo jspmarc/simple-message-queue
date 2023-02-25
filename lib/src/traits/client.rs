@@ -6,7 +6,7 @@ pub trait Client {
     fn connect(&mut self, host: &str, port: u16) -> Result<(), ClientError>;
 
     /// a method to disconnect the client from the server
-    fn disconnect(&self);
+    fn disconnect(&mut self) -> Result<(), ClientError>;
 
     /// pushes message to the server's queue
     fn push(&mut self, message: &Message) -> Result<bool, ClientError>;

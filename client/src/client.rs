@@ -1,5 +1,7 @@
 use std::io::{BufReader, Read, Write};
 use std::net::TcpStream;
+use std::thread::sleep;
+use std::time::Duration;
 use bytes::Bytes;
 use smq_lib::enums::errors::ClientError;
 use smq_lib::structs::message::Message;
@@ -7,6 +9,7 @@ use smq_lib::traits::client::Client;
 
 const PUSH_HEADER: [u8; 1] = [0];
 const PULL_HEADER: [u8; 1] = [1];
+const DISCONNECT_HEADER: [u8; 1] = [0xFF];
 
 pub struct ClientImpl {
     stream: Option<TcpStream>,
@@ -40,8 +43,22 @@ impl Client for ClientImpl {
         Ok(())
     }
 
-    fn disconnect(&self) {
-        todo!()
+    fn disconnect(&mut self) -> Result<(), ClientError> {
+        let stream = self.get_stream()?;
+
+        let req = vec![
+            DISCONNECT_HEADER.to_vec(),
+            vec![0; 8],
+        ].concat();
+
+        loop {
+            if stream.write(&req).is_ok() {
+                break;
+            };
+            sleep(Duration::from_millis(100));
+        }
+
+        Ok(())
     }
 
     fn push(&mut self, message: &Message) -> Result<bool, ClientError> {

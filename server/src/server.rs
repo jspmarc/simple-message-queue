@@ -58,7 +58,7 @@ impl ServerImpl {
                         Err(_) => FAILED_HEADER,
                     };
                     [response.to_vec(), vec![0; 8]].concat()
-                } else {
+                } else if first_byte == 1 {
                     info!("Got a pull message");
                     // pull
                     let queue = &mut queue.lock().unwrap();
@@ -68,6 +68,8 @@ impl ServerImpl {
                         Bytes::from(msg.len().to_be_bytes().to_vec()),
                         msg,
                     ].concat()
+                } else {
+                    break;
                 }
             };
             stream.write_all(&response).expect("Failed to send response");

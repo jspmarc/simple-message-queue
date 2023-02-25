@@ -18,6 +18,6 @@ pub enum ClientError {
     StreamNotStarted,
     CantWriteToStream(String),
     CantReadFromStream(String),
-    ServerError,
+    ServerError(String),
     MessageError(MessageError),
 }

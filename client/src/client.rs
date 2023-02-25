@@ -69,8 +69,8 @@ impl Client for ClientImpl {
     fn pull(&mut self) -> Result<Message, ClientError> {
         let stream = self.get_stream()?;
 
-        let request = &PULL_HEADER;
-        if let Err(e) = stream.write(request) {
+        let header = [PULL_HEADER.to_vec(), vec![0_u8; 8]].concat();
+        if let Err(e) = stream.write(&header) {
             return Err(ClientError::CantWriteToStream(e.to_string()));
         };
 
@@ -87,7 +87,7 @@ impl Client for ClientImpl {
             return Err(ClientError::CantReadFromStream(e.to_string()));
         }
         if response[0] != 0 {
-            return Err(ClientError::ServerError);
+            return Err(ClientError::ServerError(String::from("Server can't send data")));
         }
 
         let response = &response[1..];

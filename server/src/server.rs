@@ -1,6 +1,9 @@
 use std::collections::VecDeque;
-use std::io::{BufReader, Read, Write};
+use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::thread::JoinHandle;
 use bytes::Bytes;
 use log::{error, info};
 use smq_lib::enums::errors::{MessageError, ServerError};
@@ -8,13 +11,15 @@ use smq_lib::structs::message::Message;
 use smq_lib::traits::server::Server;
 
 pub(crate) struct ServerImpl {
-    queue: VecDeque<Message>,
+    queue: Arc<Mutex<VecDeque<Message>>>,
+    threads: Vec<JoinHandle<()>>,
 }
 
 impl ServerImpl {
     pub fn new() -> Self {
         ServerImpl {
-            queue: VecDeque::new(),
+            queue: Arc::new(Mutex::new(VecDeque::new())),
+            threads: vec![],
         }
     }
 }
@@ -23,40 +28,44 @@ const SUCCESS_HEADER: [u8; 1] = [0];
 const FAILED_HEADER: [u8; 1] = [1];
 
 impl ServerImpl {
-    fn handle_incoming(&mut self, mut stream: TcpStream) {
-        let mut buf_reader = BufReader::new(&mut stream);
-        let mut header: [u8; 9] = [0; 9];
-        // TODO: handle this expect
-        buf_reader.read_exact(&mut header).expect("Can't read headers");
-        let first_byte = header[0];
-        let size = u64::from_be_bytes([header[1], header[2], header[3], header[4],
-            header[5], header[6], header[7], header[8]]);
-
-        if first_byte == 0 {
-            let mut body = vec![0_u8; size as usize];
+    fn handle_incoming(queue: Arc<Mutex<VecDeque<Message>>>, mut stream: TcpStream) {
+        info!("Started a TCP handler");
+        loop {
+            let mut header: [u8; 9] = [0; 9];
             // TODO: handle this expect
-            buf_reader.read_exact(&mut body).expect("Can't read body");
-            info!("Got a push message");
-            // push
-            let msg = match Message::deserialize(&body) {
-                Ok(m) => m,
-                Err(_) => return stream.write_all(&FAILED_HEADER).unwrap(),
-            };
+            stream.read_exact(&mut header).expect("Can't read headers");
+            let first_byte = header[0];
+            let size = u64::from_be_bytes([header[1], header[2], header[3], header[4],
+                header[5], header[6], header[7], header[8]]);
 
-            match self.enqueue(msg) {
-                Ok(_) => (),
-                Err(_) => stream.write_all(&FAILED_HEADER).unwrap(),
+            if first_byte == 0 {
+                let mut body = vec![0_u8; size as usize];
+                // TODO: handle this expect
+                stream.read_exact(&mut body).expect("Can't read body");
+                info!("Got a push message");
+                // push
+                let msg = match Message::deserialize(&body) {
+                    Ok(m) => m,
+                    Err(_) => return stream.write_all(&FAILED_HEADER).unwrap(),
+                };
+
+                let queue = &mut queue.lock().unwrap();
+                match ServerImpl::enqueue(queue, msg) {
+                    Ok(_) => stream.write_all(&SUCCESS_HEADER).unwrap(),
+                    Err(_) => stream.write_all(&FAILED_HEADER).unwrap(),
+                }
+            } else {
+                info!("Got a pull message");
+                // pull
+                let queue = &mut queue.lock().unwrap();
+                let msg = ServerImpl::dequeue(queue).serialize();
+                let response = vec![
+                    Bytes::from(SUCCESS_HEADER.to_vec()),
+                    Bytes::from(msg.len().to_be_bytes().to_vec()),
+                    msg,
+                ].concat();
+                stream.write_all(&response).unwrap();
             }
-        } else {
-            info!("Got a pull message");
-            // pull
-            let msg = self.dequeue().serialize();
-            let response = vec![
-                Bytes::from(SUCCESS_HEADER.to_vec()),
-                Bytes::from(msg.len().to_be_bytes().to_vec()),
-                msg,
-            ].concat();
-            stream.write_all(&response).unwrap();
         }
     }
 }
@@ -82,28 +91,37 @@ impl Server for ServerImpl {
                 }
             };
 
-            self.handle_incoming(stream);
+            let queue = self.queue.clone();
+            let t = thread::spawn(move || {
+                ServerImpl::handle_incoming(queue, stream)
+            });
+            self.threads.push(t);
         }
 
         Ok(())
     }
 
-    fn stop(&self) -> Result<(), ServerError> {
-        todo!()
+    fn stop(&mut self) -> Result<(), ServerError> {
+        let threads = &mut self.threads;
+        for thread in threads.drain(..) {
+            thread.join().unwrap();
+        }
+
+        Ok(())
     }
 
-    fn enqueue(&mut self, message: Message) -> Result<(), MessageError> {
+    fn enqueue(queue: &mut VecDeque<Message>, message: Message) -> Result<(), MessageError> {
         message.validate()?;
 
-        self.queue.push_back(message);
+        queue.push_back(message);
 
         Ok(())
     }
 
-    fn dequeue(&mut self) -> Message {
-        if self.queue.is_empty() {
+    fn dequeue(queue: &mut VecDeque<Message>) -> Message {
+        if queue.is_empty() {
             return Message::empty_message();
         }
-        self.queue.pop_front().unwrap()
+        queue.pop_front().unwrap()
     }
 }

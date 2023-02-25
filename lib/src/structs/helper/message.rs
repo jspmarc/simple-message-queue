@@ -195,7 +195,7 @@ macro_rules! generate_constructor_from_number {
                     code: Code::SUCCESS,
                     size: data.len(),
                 },
-                data: Rc::new(msg_data),
+                data: Arc::new(msg_data),
             }
         })+
     };

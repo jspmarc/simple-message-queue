@@ -9,4 +9,6 @@ fn main() {
 
     let mut server = ServerImpl::new();
     server.start(None).expect("Server encountered an error");
+
+    server.stop().expect("Server can't be stopped");
 }

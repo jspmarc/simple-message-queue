@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use std::str::FromStr;
+use std::sync::Arc;
 use bytes::Bytes;
 use crate::enums::r#type::Type;
 use crate::enums::code::Code;
@@ -9,7 +9,7 @@ use crate::structs::helper::message::*;
 #[derive(Debug, PartialEq)]
 pub struct Message {
     metadata: Metadata,
-    data: Rc<Vec<u8>>,
+    data: Arc<Vec<u8>>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -32,8 +32,8 @@ impl Message {
         self.metadata.size
     }
 
-    pub fn get_data(&self) -> Rc<Vec<u8>> {
-        Rc::clone(&self.data)
+    pub fn get_data(&self) -> Arc<Vec<u8>> {
+        Arc::clone(&self.data)
     }
 
     pub fn serialize(&self) -> Bytes {
@@ -74,7 +74,7 @@ impl Message {
         // body
         validate_body(&message[5..], size, &r#type)?;
         let data = message[5..].to_vec();
-        let data = Rc::new(data);
+        let data = Arc::new(data);
 
         Ok(Message {
             metadata: Metadata {
@@ -107,7 +107,7 @@ impl FromStr for Message {
                 code: Code::SUCCESS,
                 size: 1,
             },
-            data: Rc::new(data)
+            data: Arc::new(data)
         })
     }
 }
@@ -128,7 +128,7 @@ impl Message {
                 code: Code::SUCCESS,
                 size: data.len(),
             },
-            data: Rc::new(msg_data.concat()),
+            data: Arc::new(msg_data.concat()),
         }
     }
 
@@ -152,7 +152,7 @@ impl Message {
                 code: Code::EMPTY_QUEUE,
                 size: 0,
             },
-            data: Rc::new(vec![]),
+            data: Arc::new(vec![]),
         }
     }
 }
@@ -161,7 +161,7 @@ impl Message {
 impl Message {
     pub fn parse_data_to_str(&self) -> Result<Vec<String>, MessageError> {
         if let Type::Str(_) = self.metadata.r#type {
-            let data = parse_string(&*self.data);
+            let data = parse_string(&self.data);
             return downcast_type!(data, String);
         }
 

@@ -3,16 +3,18 @@ use log::{error, info};
 use smq_lib::enums::errors::{MessageError, ServerError};
 use smq_lib::structs::message::Message;
 use smq_lib::traits::server::Server;
-use std::collections::VecDeque;
-use std::io::{Read, Write};
+use std::collections::{HashMap, VecDeque};
+use std::io::{self, Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::thread::JoinHandle;
+use std::time::Duration;
+use uuid::Uuid;
 
 pub(crate) struct ServerImpl {
     queue: Arc<Mutex<VecDeque<Message>>>,
-    threads: Vec<JoinHandle<()>>,
+    threads: Arc<Mutex<HashMap<Uuid, JoinHandle<()>>>>,
     listener: Option<TcpListener>,
 }
 
@@ -20,7 +22,7 @@ impl ServerImpl {
     pub fn new() -> Self {
         ServerImpl {
             queue: Arc::new(Mutex::new(VecDeque::new())),
-            threads: vec![],
+            threads: Arc::new(Mutex::new(HashMap::new())),
             listener: None,
         }
     }
@@ -30,7 +32,12 @@ const SUCCESS_HEADER: [u8; 1] = [0];
 const FAILED_HEADER: [u8; 1] = [1];
 
 impl ServerImpl {
-    fn handle_incoming(queue: Arc<Mutex<VecDeque<Message>>>, mut stream: TcpStream) {
+    fn handle_incoming(
+        queue: Arc<Mutex<VecDeque<Message>>>,
+        mut stream: TcpStream,
+        id: Uuid,
+        tx: mpsc::Sender<Uuid>,
+    ) {
         info!("Started a TCP handler");
         loop {
             let mut header: [u8; 9] = [0; 9];
@@ -72,6 +79,7 @@ impl ServerImpl {
                     ]
                     .concat()
                 } else {
+                    let _ = tx.send(id);
                     break;
                 }
             };
@@ -87,10 +95,12 @@ impl Server for ServerImpl {
         let addr = format!("0.0.0.0:{}", port.unwrap_or(8080));
 
         info!("Starting TCP listener");
-        self.listener = match TcpListener::bind(addr) {
-            Ok(listener) => Some(listener),
+        let listener = match TcpListener::bind(addr) {
+            Ok(listener) => listener,
             Err(e) => return Err(ServerError::UnableToStartServer(e.to_string())),
         };
+        let _ = listener.set_nonblocking(true);
+        self.listener = Some(listener);
 
         info!("Listener is ready to listen to incoming messages");
 
@@ -103,29 +113,62 @@ impl Server for ServerImpl {
             None => return Err(ServerError::ServerNotYetStarted),
         };
 
+        let (tx_id, rx_id) = mpsc::channel::<Uuid>();
+        let (tx_done, rx_done) = mpsc::channel::<()>();
+
+        let threads = self.threads.clone();
+        let rx_thread = thread::spawn(move || {
+            while let Ok(id) = rx_id.recv() {
+                threads.lock().unwrap().remove(&id);
+            }
+        });
+
+        let _ = ctrlc::set_handler(move || {
+            let _ = tx_done.send(());
+            info!("Gracefully shutting down...");
+        });
+
         for stream in listener.incoming() {
+            // check if we are done
+            match rx_done.try_recv() {
+                Err(mpsc::TryRecvError::Disconnected) | Ok(()) => break,
+                Err(mpsc::TryRecvError::Empty) => (),
+            };
+
             let stream = match stream {
                 Ok(s) => s,
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    thread::sleep(Duration::from_millis(15));
+                    continue;
+                }
                 Err(e) => {
                     error!("Can't decode stream, error: {}", e);
                     continue;
                 }
             };
 
+            let id = Uuid::new_v4();
+
             let queue = self.queue.clone();
-            let t = thread::spawn(move || ServerImpl::handle_incoming(queue, stream));
-            self.threads.push(t);
+            let tx = tx_id.clone();
+            let t = thread::spawn(move || ServerImpl::handle_incoming(queue, stream, id, tx));
+            self.threads.lock().unwrap().insert(id, t);
         }
 
-        self.stop()
+        drop(tx_id);
+        let _ = rx_thread.join();
+
+        Ok(())
     }
 
     fn stop(&mut self) -> Result<(), ServerError> {
-        let threads = &mut self.threads;
-        for thread in threads.drain(..) {
-            thread.join().unwrap();
+        info!("Joining worker threads...");
+        let mut threads = self.threads.lock().unwrap();
+        for thread in threads.drain() {
+            let _ = thread.1.join();
         }
 
+        info!("Good bye~");
         Ok(())
     }
 
@@ -144,4 +187,3 @@ impl Server for ServerImpl {
         queue.pop_front().unwrap()
     }
 }
-

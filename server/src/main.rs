@@ -13,4 +13,6 @@ fn main() {
     server
         .r#loop()
         .expect("An error occurred when running server loop");
+
+    server.stop().expect("Can't stop TCP listener");
 }

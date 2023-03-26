@@ -4,26 +4,22 @@ pub mod traits;
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-    use bytes::Bytes;
     use crate::enums::errors::MessageError;
-    use crate::structs::message::{Message};
+    use crate::structs::message::Message;
+    use bytes::Bytes;
+    use std::str::FromStr;
 
     #[test]
     fn message_serialize_success() {
         let msg = Message::from_u16_arr(&[1, 127]);
-        let expected = Bytes::from(vec![0b0000_0001,
-                                        0, 0, 0, 2,
-                                        0, 1, 0, 127]);
+        let expected = Bytes::from(vec![0b0000_0001, 0, 0, 0, 2, 0, 1, 0, 127]);
 
         assert_eq!(expected, msg.serialize());
     }
 
     #[test]
     fn message_deserialize_success() {
-        let msg = [0b0000_0001,
-            0, 0, 0, 2,
-            0, 1, 0, 127];
+        let msg = [0b0000_0001, 0, 0, 0, 2, 0, 1, 0, 127];
 
         let expected = Message::from_u16_arr(&[1, 127]);
 
@@ -32,9 +28,7 @@ mod tests {
 
     #[test]
     fn message_deserialize_invalid_header() {
-        let msg = [0b1000_0001,
-            0, 0, 0, 2,
-            0, 1, 0, 127];
+        let msg = [0b1000_0001, 0, 0, 0, 2, 0, 1, 0, 127];
 
         let res = Message::deserialize(&msg);
         assert_eq!(res.unwrap_err(), MessageError::InvalidHeaderBits);
@@ -42,9 +36,7 @@ mod tests {
 
     #[test]
     fn message_deserialize_invalid_data_length() {
-        let msg = [0b0000_0001,
-            0, 0, 0, 3,
-            0, 1, 0, 127];
+        let msg = [0b0000_0001, 0, 0, 0, 3, 0, 1, 0, 127];
 
         let res = Message::deserialize(&msg);
         assert_eq!(res.unwrap_err(), MessageError::InvalidDataLength);
@@ -52,9 +44,7 @@ mod tests {
 
     #[test]
     fn message_deserialize_invalid_data() {
-        let msg = [0b0000_1010,
-            0, 0, 0, 1,
-            1];
+        let msg = [0b0000_1010, 0, 0, 0, 1, 1];
 
         let res = Message::deserialize(&msg);
         assert_eq!(res.unwrap_err(), MessageError::InvalidData);
@@ -62,10 +52,7 @@ mod tests {
 
     #[test]
     fn message_parse_data_to_str_success_from_str_arr() {
-        let expected = vec![
-            String::from("Hello, World!"),
-            String::from("Hi, World!"),
-        ];
+        let expected = vec![String::from("Hello, World!"), String::from("Hi, World!")];
 
         let msg = Message::from_str_arr(&expected);
         let parsed = msg.parse_data_to_str().unwrap();

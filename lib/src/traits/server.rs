@@ -1,6 +1,6 @@
-use std::collections::VecDeque;
 use crate::enums::errors::{MessageError, ServerError};
 use crate::structs::message::Message;
+use std::collections::VecDeque;
 
 pub trait Server {
     /// binds the server to a port

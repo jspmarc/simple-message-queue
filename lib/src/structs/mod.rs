@@ -1,2 +1,3 @@
-pub mod message;
 mod helper;
+pub mod message;
+

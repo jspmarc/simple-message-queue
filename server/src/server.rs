@@ -1,14 +1,14 @@
+use bytes::Bytes;
+use log::{error, info};
+use smq_lib::enums::errors::{MessageError, ServerError};
+use smq_lib::structs::message::Message;
+use smq_lib::traits::server::Server;
 use std::collections::VecDeque;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::thread::JoinHandle;
-use bytes::Bytes;
-use log::{error, info};
-use smq_lib::enums::errors::{MessageError, ServerError};
-use smq_lib::structs::message::Message;
-use smq_lib::traits::server::Server;
 
 pub(crate) struct ServerImpl {
     queue: Arc<Mutex<VecDeque<Message>>>,
@@ -37,8 +37,10 @@ impl ServerImpl {
             // TODO: handle this expect
             stream.read_exact(&mut header).expect("Can't read headers");
             let first_byte = header[0];
-            let size = u64::from_be_bytes([header[1], header[2], header[3], header[4],
-                header[5], header[6], header[7], header[8]]);
+            let size = u64::from_be_bytes([
+                header[1], header[2], header[3], header[4], header[5], header[6], header[7],
+                header[8],
+            ]);
 
             let response = {
                 if first_byte == 0 {
@@ -67,12 +69,15 @@ impl ServerImpl {
                         Bytes::from(SUCCESS_HEADER.to_vec()),
                         Bytes::from(msg.len().to_be_bytes().to_vec()),
                         msg,
-                    ].concat()
+                    ]
+                    .concat()
                 } else {
                     break;
                 }
             };
-            stream.write_all(&response).expect("Failed to send response");
+            stream
+                .write_all(&response)
+                .expect("Failed to send response");
         }
     }
 }
@@ -108,9 +113,7 @@ impl Server for ServerImpl {
             };
 
             let queue = self.queue.clone();
-            let t = thread::spawn(move || {
-                ServerImpl::handle_incoming(queue, stream)
-            });
+            let t = thread::spawn(move || ServerImpl::handle_incoming(queue, stream));
             self.threads.push(t);
         }
 
@@ -141,3 +144,4 @@ impl Server for ServerImpl {
         queue.pop_front().unwrap()
     }
 }
+

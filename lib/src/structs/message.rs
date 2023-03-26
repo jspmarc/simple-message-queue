@@ -1,10 +1,10 @@
-use std::str::FromStr;
-use std::sync::Arc;
-use bytes::Bytes;
-use crate::enums::r#type::Type;
 use crate::enums::code::Code;
 use crate::enums::errors::MessageError;
+use crate::enums::r#type::Type;
 use crate::structs::helper::message::*;
+use bytes::Bytes;
+use std::str::FromStr;
+use std::sync::Arc;
 
 #[derive(Debug, PartialEq)]
 pub struct Message {
@@ -13,7 +13,7 @@ pub struct Message {
 }
 
 #[derive(Debug, PartialEq)]
-pub(in super) struct Metadata {
+pub(super) struct Metadata {
     r#type: Type,
     code: Code,
     size: usize,
@@ -49,11 +49,13 @@ impl Message {
             let size_third_byte = (size & 0x0000_FF00) as u8;
             let size_fourth_byte = (size & 0x0000_00FF) as u8;
 
-            Bytes::from(vec![first_byte,
-                             size_first_byte,
-                             size_second_byte,
-                             size_third_byte,
-                             size_fourth_byte])
+            Bytes::from(vec![
+                first_byte,
+                size_first_byte,
+                size_second_byte,
+                size_third_byte,
+                size_fourth_byte,
+            ])
         };
 
         Bytes::from([metadata, Bytes::from((*self.data).clone())].concat())
@@ -66,10 +68,10 @@ impl Message {
         let code = map_nibble_to_code(first_byte & 0xF0);
         let r#type = map_nibble_to_type(first_byte & 0x0F);
         let size_bytes = message[1..5].to_vec();
-        let size: usize = ((size_bytes[0] as usize) << 24) +
-            ((size_bytes[1] as usize) << 16) +
-            ((size_bytes[2] as usize) << 8) +
-            (size_bytes[3] as usize);
+        let size: usize = ((size_bytes[0] as usize) << 24)
+            + ((size_bytes[1] as usize) << 16)
+            + ((size_bytes[2] as usize) << 8)
+            + (size_bytes[3] as usize);
 
         // body
         validate_body(&message[5..], size, &r#type)?;
@@ -77,17 +79,17 @@ impl Message {
         let data = Arc::new(data);
 
         Ok(Message {
-            metadata: Metadata {
-                r#type,
-                code,
-                size,
-            },
+            metadata: Metadata { r#type, code, size },
             data,
         })
     }
 
     pub fn validate(&self) -> Result<(), MessageError> {
-        validate_body(&self.data.clone(), self.metadata.size, &self.metadata.r#type)?;
+        validate_body(
+            &self.data.clone(),
+            self.metadata.size,
+            &self.metadata.r#type,
+        )?;
         Ok(())
     }
 }
@@ -96,10 +98,7 @@ impl FromStr for Message {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let data = [
-            Bytes::from(s.to_string()),
-            Bytes::from("\0".to_string())
-        ].concat();
+        let data = [Bytes::from(s.to_string()), Bytes::from("\0".to_string())].concat();
 
         Ok(Message {
             metadata: Metadata {
@@ -107,7 +106,7 @@ impl FromStr for Message {
                 code: Code::SUCCESS,
                 size: 1,
             },
-            data: Arc::new(data)
+            data: Arc::new(data),
         })
     }
 }
@@ -132,6 +131,7 @@ impl Message {
         }
     }
 
+    #[rustfmt::skip]
     generate_constructor_from_number!(
         u8, from_u8_arr, Type::U8(0),
         u16, from_u16_arr, Type::U16(0),
@@ -168,6 +168,7 @@ impl Message {
         Err(MessageError::InvalidType)
     }
 
+    #[rustfmt::skip]
     generate_parser_to_number!(
         u8, parse_data_to_u8, Type::U8(_), Type::U8(0),
         u16, parse_data_to_u16, Type::U16(_), Type::U16(0),

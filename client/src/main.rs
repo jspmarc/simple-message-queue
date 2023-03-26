@@ -1,8 +1,8 @@
-use std::thread::sleep;
-use std::time::Duration;
+use crate::client::ClientImpl;
 use smq_lib::structs::message::Message;
 use smq_lib::traits::client::Client;
-use crate::client::ClientImpl;
+use std::thread::sleep;
+use std::time::Duration;
 
 mod client;
 
@@ -12,9 +12,11 @@ fn main() {
 
     let mut client = ClientImpl::new();
 
-    client.connect("localhost", 8080).expect("Can't connect to server");
+    client
+        .connect("localhost", 8080)
+        .expect("Can't connect to server");
 
-    let msg = Message::from_u16_arr(&[1,2]);
+    let msg = Message::from_u16_arr(&[1, 2]);
     let result = client.push(&msg).expect("Can't push message");
     if !result {
         panic!("Failed to push message, server can't receive");

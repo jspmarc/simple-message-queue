@@ -10,5 +10,7 @@ fn main() {
     let mut server = ServerImpl::new();
     server.bind(None).expect("Server encountered an error");
 
-    server.r#loop().expect("An error occurred when running server loop");
+    server
+        .r#loop()
+        .expect("An error occurred when running server loop");
 }

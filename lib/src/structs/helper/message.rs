@@ -1,6 +1,6 @@
-use crate::enums::r#type::Type;
 use crate::enums::code::Code;
 use crate::enums::errors::MessageError;
+use crate::enums::r#type::Type;
 use crate::structs::message::{Message, Metadata};
 
 impl Eq for Message {}
@@ -106,8 +106,9 @@ macro_rules! bytes_to_num {
     };
 
     ($arr:expr, $Type:expr, $ty:ty, 8) => {
-        $Type(<$ty>::from_be_bytes([$arr[0], $arr[1], $arr[2], $arr[3],
-                                  $arr[4], $arr[5], $arr[6], $arr[7]]))
+        $Type(<$ty>::from_be_bytes([
+            $arr[0], $arr[1], $arr[2], $arr[3], $arr[4], $arr[5], $arr[6], $arr[7],
+        ]))
     };
 }
 
@@ -129,7 +130,7 @@ pub(in super::super) fn parse_num(data: &Vec<u8>, ty: Type) -> Vec<Type> {
             Type::I64(_) => bytes_to_num!(current_bytes, Type::I64, i64, 8),
             Type::F32(_) => bytes_to_num!(current_bytes, Type::F32, f32, 4),
             Type::F64(_) => bytes_to_num!(current_bytes, Type::F64, f64, 8),
-            _ => unimplemented!()
+            _ => unimplemented!(),
         };
 
         ret_val.push(current_data);
@@ -156,7 +157,11 @@ pub(in super::super) fn validate_header(header: &[u8]) -> Result<(), MessageErro
     Ok(())
 }
 
-pub(in super::super) fn validate_body(body: &[u8], len: usize, ty: &Type) -> Result<(), MessageError> {
+pub(in super::super) fn validate_body(
+    body: &[u8],
+    len: usize,
+    ty: &Type,
+) -> Result<(), MessageError> {
     let size = ty.get_size();
 
     if size == 0 {
@@ -177,7 +182,8 @@ pub(in super::super) fn validate_body(body: &[u8], len: usize, ty: &Type) -> Res
 
 macro_rules! downcast_type {
     ($data:ident, $ty:ty) => {
-        Ok($data.iter()
+        Ok($data
+            .iter()
             .map(|x| *(x.get_value().downcast::<$ty>().unwrap()))
             .collect::<Vec<$ty>>())
     };
@@ -215,7 +221,5 @@ macro_rules! generate_parser_to_number {
 }
 
 pub(in super::super) use {
-    downcast_type,
-    generate_constructor_from_number,
-    generate_parser_to_number,
+    downcast_type, generate_constructor_from_number, generate_parser_to_number,
 };

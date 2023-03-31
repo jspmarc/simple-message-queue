@@ -52,20 +52,20 @@ Metadata (when pull):
 ```
 code: EMPTY_QUEUE, SUCCESS
 type: I8, I16, I32, I64, U8, U16, U32, U64 , F32, F64, Str
-count: unsigned long
+count: unsigned int (4 bytes)
 ```
 
-3 kinds metadata are used to describe the data. `code` describes the kind of response and `type`
+3 kinds of metadata are used to describe the data. `code` describes the kind of response and `type`
 describes the data type. `count` describes how many data is in it. If `count > 1` then the data is
 treated as an array. For strings, each element will be seperated with a null-terminator character
-(\0) and a null-terminator character is added at the end of the data bytes.
+(`\0`), it is also added at the end of the data bytes.
 
-The metadata is a 5 bytes data to explain the sent data. The first byte consists of the `code` and
-`type` metadata. `code` takes first 4 bits and `type` takes the 2nd 4 bits. `count` is 4 bytes
-(which is an unsigned 4 bytes integer) which means the whole metadata takes 5 bytes. This means
-when sending an array, the maximum element limit is 4,294,967,295 elements.
+*The metadata is 5 bytes data*. The first byte consists of the `code` and `type` metadata. `code`
+takes first 4 left bits and `type` takes the rest 4 bits. `count` is 4 bytes (which is an unsigned
+4 bytes integer) which means the whole metadata takes 5 bytes. This means when sending an array,
+the maximum element limit is 4,294,967,295 elements.
 
-With the metadata, the response will be 5 megabytes with some additional bytes if the data exists.
+With the metadata, the response will be 5 megabytes with additional bytes if the data exists.
 
 Code and type to bits mapping
 

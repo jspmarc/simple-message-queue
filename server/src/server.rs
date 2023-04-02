@@ -6,14 +6,14 @@ use smq_lib::traits::server::Server;
 use std::collections::{HashMap, VecDeque};
 use std::io::{self, Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex, RwLock};
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
 use uuid::Uuid;
 
 pub(crate) struct ServerImpl {
-    queue: Arc<Mutex<VecDeque<Message>>>,
+    queue: Arc<RwLock<VecDeque<Message>>>,
     threads: Arc<Mutex<HashMap<Uuid, JoinHandle<()>>>>,
     listener: Option<TcpListener>,
 }
@@ -21,7 +21,7 @@ pub(crate) struct ServerImpl {
 impl ServerImpl {
     pub fn new() -> Self {
         ServerImpl {
-            queue: Arc::new(Mutex::new(VecDeque::new())),
+            queue: Arc::new(RwLock::new(VecDeque::new())),
             threads: Arc::new(Mutex::new(HashMap::new())),
             listener: None,
         }
@@ -33,7 +33,7 @@ const FAILED_HEADER: [u8; 1] = [1];
 
 impl ServerImpl {
     fn handle_incoming(
-        queue: Arc<Mutex<VecDeque<Message>>>,
+        queue: Arc<RwLock<VecDeque<Message>>>,
         mut stream: TcpStream,
         id: Uuid,
         tx: mpsc::Sender<Uuid>,
@@ -61,7 +61,7 @@ impl ServerImpl {
                         Err(_) => return stream.write_all(&FAILED_HEADER).unwrap(),
                     };
 
-                    let queue = &mut queue.lock().unwrap();
+                    let queue = &mut queue.write().unwrap();
                     let response = match ServerImpl::enqueue(queue, msg) {
                         Ok(_) => SUCCESS_HEADER,
                         Err(_) => FAILED_HEADER,
@@ -70,7 +70,7 @@ impl ServerImpl {
                 } else if first_byte == 1 {
                     info!("Got a pull message");
                     // pull
-                    let queue = &mut queue.lock().unwrap();
+                    let queue = &mut queue.write().unwrap();
                     let msg = ServerImpl::dequeue(queue).serialize();
                     vec![
                         Bytes::from(SUCCESS_HEADER.to_vec()),
@@ -119,7 +119,10 @@ impl Server for ServerImpl {
         let threads = self.threads.clone();
         let rx_thread = thread::spawn(move || {
             while let Ok(id) = rx_id.recv() {
-                threads.lock().unwrap().remove(&id);
+                let t = threads.lock().unwrap().remove(&id);
+                if let Some(t) = t {
+                    let _ = t.join();
+                }
             }
         });
 
